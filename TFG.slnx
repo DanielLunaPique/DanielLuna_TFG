@@ -1,0 +1,6 @@
+﻿<Solution>
+  <Project Path="MerryYellow.CodeAssist.Editor.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Unity.VSCode.Editor.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+</Solution>
