@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53b4280f51fca6d4c9bfd8f490b50f9e, type: 3}
+  m_Name: Stats_PPSH
+  m_EditorClassIdentifier: Assembly-CSharp::EstadisticasArma
+  nombreArma: PPSH-41
+  prefabArma: {fileID: 6071584549293007168, guid: 241c6993ccdb37340bc6a4a177e644b7, type: 3}
+  "da\xF1o": 22
+  cadenciaDisparo: 0.066
+  balasCargador: 71
+  tiempoRecarga: 2.8
+  modoDisparo: 0
+  balasPorRafaga: 3
+  alcance: 180
+  position: {x: 0.27385902, y: -0.19299977, z: 1.3941199}
+  rotation: {x: 357.61102, y: 176.6304, z: 0.0050147222}

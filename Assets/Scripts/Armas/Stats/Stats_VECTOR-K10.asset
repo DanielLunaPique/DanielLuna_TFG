@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53b4280f51fca6d4c9bfd8f490b50f9e, type: 3}
+  m_Name: Stats_VECTOR-K10
+  m_EditorClassIdentifier: Assembly-CSharp::EstadisticasArma
+  nombreArma: VECTOR-K10
+  prefabArma: {fileID: 8712849249800013046, guid: 457a5e0e81592b046a8717a070ea6770, type: 3}
+  "da\xF1o": 17
+  cadenciaDisparo: 0.064
+  balasCargador: 36
+  tiempoRecarga: 1.93
+  modoDisparo: 0
+  balasPorRafaga: 3
+  alcance: 140
+  position: {x: 0.27257344, y: -0.36300015, z: 1.4577032}
+  rotation: {x: 2.7167008, y: 358.808, z: 359.74762}

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53b4280f51fca6d4c9bfd8f490b50f9e, type: 3}
+  m_Name: Stats_UZI
+  m_EditorClassIdentifier: Assembly-CSharp::EstadisticasArma
+  nombreArma: UZI
+  prefabArma: {fileID: 6769287643167909588, guid: 04ebc5795fafdcc4cb4237ae93c66ae9, type: 3}
+  "da\xF1o": 16
+  cadenciaDisparo: 0.064
+  balasCargador: 25
+  tiempoRecarga: 1.9
+  modoDisparo: 0
+  balasPorRafaga: 3
+  alcance: 120
+  position: {x: 0.25303075, y: -0.3890002, z: 2.0138273}
+  rotation: {x: 2.7167008, y: 358.808, z: 359.74762}
