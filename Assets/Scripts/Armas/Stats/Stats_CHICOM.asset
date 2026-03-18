@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53b4280f51fca6d4c9bfd8f490b50f9e, type: 3}
+  m_Name: Stats_CHICOM
+  m_EditorClassIdentifier: Assembly-CSharp::EstadisticasArma
+  nombreArma: CHICOM
+  prefabArma: {fileID: 3386663550301400852, guid: 096cb921cb878724db474ea540032640, type: 3}
+  "da\xF1o": 19
+  cadenciaDisparo: 0.05
+  balasCargador: 36
+  tiempoRecarga: 2.1
+  modoDisparo: 2
+  balasPorRafaga: 3
+  alcance: 200
+  position: {x: 0.2756939, y: -0.467, z: 1.7356685}
+  rotation: {x: 2.7167008, y: 358.808, z: 359.74762}

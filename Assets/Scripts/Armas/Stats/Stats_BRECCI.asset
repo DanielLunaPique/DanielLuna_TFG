@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53b4280f51fca6d4c9bfd8f490b50f9e, type: 3}
+  m_Name: Stats_BRECCI
+  m_EditorClassIdentifier: Assembly-CSharp::EstadisticasArma
+  nombreArma: BRECCI
+  prefabArma: {fileID: 6810826342680241524, guid: 0b981673e3286e04787b9cb64d638b20, type: 3}
+  "da\xF1o": 40
+  cadenciaDisparo: 0.283
+  balasCargador: 8
+  tiempoRecarga: 2.22
+  modoDisparo: 1
+  balasPorRafaga: 3
+  alcance: 70
+  position: {x: 0.27921864, y: -0.33400008, z: 0.9896176}
+  rotation: {x: 2.7167008, y: 358.808, z: 359.74762}

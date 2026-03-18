@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53b4280f51fca6d4c9bfd8f490b50f9e, type: 3}
+  m_Name: Stats_M8A1
+  m_EditorClassIdentifier: Assembly-CSharp::EstadisticasArma
+  nombreArma: M8A1
+  prefabArma: {fileID: 630341572420416615, guid: f96b66c4eebeeda4a8394ec9b9b6b395, type: 3}
+  "da\xF1o": 23
+  cadenciaDisparo: 0.076
+  balasCargador: 32
+  tiempoRecarga: 2.8
+  modoDisparo: 2
+  balasPorRafaga: 4
+  alcance: 750
+  position: {x: 0.2698078, y: -0.48199996, z: 1.2647742}
+  rotation: {x: 2.7167008, y: 358.808, z: 359.74762}
