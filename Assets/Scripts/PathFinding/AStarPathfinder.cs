@@ -1,0 +1,150 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+public class AStarPathfinding
+{
+    // Clase auxiliar para los nodos del algoritmo
+    public class Node
+    {
+        public int x;
+        public int z;
+        public int gCost;
+        public int hCost;
+        public Node parent;
+        public bool wallTop, wallBottom, wallLeft, wallRight;
+
+        public int FCost { get { return gCost + hCost; } }
+
+        public Node(int x, int z, CellData cellData)
+        {
+            this.x = x;
+            this.z = z;
+            // Copiamos datos de paredes para saber por dónde NO podemos pasar
+            this.wallTop = cellData.wallTop;
+            this.wallBottom = cellData.wallBottom;
+            this.wallLeft = cellData.wallLeft;
+            this.wallRight = cellData.wallRight;
+        }
+    }
+
+    // Método principal: Calcula el camino
+    public static List<Vector3> FindPath(Vector3 startWorldPos, Vector3 targetWorldPos, CellData[,] map, Custom_Grid grid)
+    {
+        // 1. Convertir posiciones de mundo a coordenadas de grid (x, z)
+        int[] start = grid.GetXZ(startWorldPos);
+        int[] target = grid.GetXZ(targetWorldPos);
+
+        // Validaciones básicas
+        if (map == null || start[0] < 0 || target[0] < 0) return null;
+
+        Node startNode = new Node(start[0], start[1], map[start[0], start[1]]);
+        Node targetNode = new Node(target[0], target[1], map[target[0], target[1]]);
+
+        List<Node> openSet = new List<Node>();
+        HashSet<Node> closedSet = new HashSet<Node>();
+        
+        // Mapeo para buscar nodos rápidamente por coordenada
+        Node[,] allNodes = new Node[map.GetLength(0), map.GetLength(1)];
+        for (int i = 0; i < map.GetLength(0); i++)
+            for (int j = 0; j < map.GetLength(1); j++)
+                allNodes[i, j] = new Node(i, j, map[i, j]);
+
+        openSet.Add(allNodes[start[0], start[1]]);
+
+        while (openSet.Count > 0)
+        {
+            // Buscar nodo con menor FCost
+            Node currentNode = openSet[0];
+            for (int i = 1; i < openSet.Count; i++)
+            {
+                if (openSet[i].FCost < currentNode.FCost || (openSet[i].FCost == currentNode.FCost && openSet[i].hCost < currentNode.hCost))
+                {
+                    currentNode = openSet[i];
+                }
+            }
+
+            openSet.Remove(currentNode);
+            closedSet.Add(currentNode);
+
+            // Si llegamos al destino
+            if (currentNode.x == target[0] && currentNode.z == target[1])
+            {
+                return RetracePath(allNodes[start[0], start[1]], currentNode, grid);
+            }
+
+            // Revisar vecinos
+            foreach (Node neighbor in GetNeighbors(currentNode, allNodes, map.GetLength(0), map.GetLength(1)))
+            {
+                if (closedSet.Contains(neighbor)) continue;
+
+                int newMovementCostToNeighbor = currentNode.gCost + 10; // Coste fijo de 10 por movimiento
+                if (newMovementCostToNeighbor < neighbor.gCost || !openSet.Contains(neighbor))
+                {
+                    neighbor.gCost = newMovementCostToNeighbor;
+                    neighbor.hCost = GetDistance(neighbor, targetNode);
+                    neighbor.parent = currentNode;
+
+                    if (!openSet.Contains(neighbor))
+                        openSet.Add(neighbor);
+                }
+            }
+        }
+
+        return null; // No se encontró camino
+    }
+
+    private static List<Node> GetNeighbors(Node node, Node[,] allNodes, int width, int height)
+    {
+        List<Node> neighbors = new List<Node>();
+
+        // Arriba (Z + 1) - Solo si NO hay pared TOP en mi celda actual
+        if (!node.wallTop && IsInBounds(node.x, node.z + 1, width, height))
+            neighbors.Add(allNodes[node.x, node.z + 1]);
+
+        // Abajo (Z - 1) - Solo si NO hay pared BOTTOM en mi celda actual
+        if (!node.wallBottom && IsInBounds(node.x, node.z - 1, width, height))
+            neighbors.Add(allNodes[node.x, node.z - 1]);
+
+        // Izquierda (X - 1) - Solo si NO hay pared LEFT en mi celda actual
+        if (!node.wallLeft && IsInBounds(node.x - 1, node.z, width, height))
+            neighbors.Add(allNodes[node.x - 1, node.z]);
+
+        // Derecha (X + 1) - Solo si NO hay pared RIGHT en mi celda actual
+        if (!node.wallRight && IsInBounds(node.x + 1, node.z, width, height))
+            neighbors.Add(allNodes[node.x + 1, node.z]);
+
+        return neighbors;
+    }
+
+    private static List<Vector3> RetracePath(Node startNode, Node endNode, Custom_Grid grid)
+    {
+        List<Vector3> path = new List<Vector3>();
+        Node currentNode = endNode;
+
+        while (currentNode != startNode)
+        {
+            // Convertir nodo (x,z) a posición de mundo CENTRADA
+            Vector3 worldPos = grid.GetWorldPosition(currentNode.x, currentNode.z);
+            float halfCell = grid.GetCellSize() * 0.5f;
+            // Asumimos Y=0 o mantenemos la Y del mundo, ajusta la Y según necesites
+            path.Add(new Vector3(worldPos.x + halfCell, 0, worldPos.z + halfCell));
+            
+            currentNode = currentNode.parent;
+        }
+        path.Reverse();
+        return path;
+    }
+
+    private static int GetDistance(Node nodeA, Node nodeB)
+    {
+        // Distancia Manhattan
+        int dstX = Mathf.Abs(nodeA.x - nodeB.x);
+        int dstY = Mathf.Abs(nodeA.z - nodeB.z);
+        return dstX + dstY;
+    }
+
+    private static bool IsInBounds(int x, int z, int width, int height)
+    {
+        return x >= 0 && x < width && z >= 0 && z < height;
+    }
+}
