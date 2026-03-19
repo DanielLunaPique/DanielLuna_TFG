@@ -21,5 +21,5 @@ MonoBehaviour:
   modoDisparo: 1
   balasPorRafaga: 3
   alcance: 85
-  position: {x: 0.178, y: -0.34, z: 0.99}
+  position: {x: 0.27921864, y: -0.34000012, z: 0.9896176}
   rotation: {x: 2.7167008, y: 358.808, z: 359.74762}

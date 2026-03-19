@@ -5,20 +5,31 @@ public class InventarioArmas : MonoBehaviour
     [Header("Referencias")]
     public ControladorArmasFPS controladorFPS;
 
-    [Header("Arsenal")]
+    [Tooltip("El objeto padre donde aparecerán las armas (ej. el pivote de la cámara o de los brazos)")]
+    public Transform contenedorArmas;
+
+    [Header("Arsenal (Máximo 2)")]
     public DatosArma[] armasEquipadas = new DatosArma[2];
 
-    private int indiceArmaActiva = -1;
+    [Header("Arma Inicial")]
+    public EstadisticasArma armaPorDefecto;
+
+    // Lo hacemos público para poder verlo en el inspector mientras testeamos
+    public int indiceArmaActiva = 0;
 
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        ApagarTodasLasArmas();
-        EquiparArma(0);
+        // Al empezar la partida, apagamos todo y preparamos lo que haya
+        ActualizarVisibilidadArmas();
+        ConfigurarArmaEnControlador();
+
+        if (armaPorDefecto != null)
+        {
+            RecibirNuevaArma(armaPorDefecto);
+        }
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (Input.GetAxis("Mouse ScrollWheel") != 0f)
@@ -27,39 +38,77 @@ public class InventarioArmas : MonoBehaviour
         }
     }
 
-    public void EquiparArma(int indice)
+    // --- COMPRAR/RECIBIR UN ARMA ---
+    public void RecibirNuevaArma(EstadisticasArma statsNuevaArma)
     {
-        if (armasEquipadas[indice] == null) return;
-        if (indice == indiceArmaActiva) return;
-
-        ApagarTodasLasArmas();
-
-        armasEquipadas[indice].gameObject.SetActive(true);
-        indiceArmaActiva = indice;
-
-        if(controladorFPS != null)
+        if (statsNuevaArma.prefabArma == null)
         {
-            controladorFPS.armaActual = armasEquipadas[indice];
-            controladorFPS.RecalcularPuntoDeMira();
-            controladorFPS.ActualizarAgarresIK();
+            Debug.LogError("Las estadísticas no tienen un prefab asignado.");
+            return;
+        }
+
+        // 1. DESTRUIR EL ARMA VIEJA (Si tenemos las manos llenas)
+        if (armasEquipadas[indiceArmaActiva] != null)
+        {
+            Debug.Log($"Destruyendo {armasEquipadas[indiceArmaActiva].gameObject.name} para hacer hueco.");
+            Destroy(armasEquipadas[indiceArmaActiva].gameObject);
+        }
+
+        // 2. INSTANCIAR EL ARMA NUEVA
+        // La creamos y la hacemos hija del contenedor (para que se mueva con la cámara)
+        GameObject nuevaArmaObj = Instantiate(statsNuevaArma.prefabArma, contenedorArmas);
+
+        // 3. APLICAR POSICIÓN Y ROTACIÓN DEL SCRIPTABLE OBJECT
+        nuevaArmaObj.transform.localPosition = statsNuevaArma.position;
+        nuevaArmaObj.transform.localRotation = Quaternion.Euler(statsNuevaArma.rotation);
+
+        // 4. GUARDAR LOS DATOS EN NUESTRO BOLSILLO (Inventario)
+        DatosArma nuevosDatos = nuevaArmaObj.GetComponent<DatosArma>();
+        armasEquipadas[indiceArmaActiva] = nuevosDatos;
+
+        // 5. EQUIPARLA VISUAL Y FÍSICAMENTE
+        ActualizarVisibilidadArmas();
+        ConfigurarArmaEnControlador();
+
+        Debug.Log($"¡Has recibido un/a {statsNuevaArma.nombreArma}!");
+    }
+
+    // --- SISTEMA DE CAMBIO DE ARMA ---
+    private void CambiarArmaSiguiente()
+    {
+        int nuevoIndice = indiceArmaActiva == 0 ? 1 : 0;
+
+        // SOLO cambiamos si realmente tenemos un arma en ese hueco secundario
+        if (armasEquipadas[nuevoIndice] != null)
+        {
+            indiceArmaActiva = nuevoIndice;
+            ActualizarVisibilidadArmas();
+            ConfigurarArmaEnControlador();
         }
     }
 
-    private void CambiarArmaSiguiente()
+    // --- FUNCIONES DE LIMPIEZA INTERNA ---
+    private void ActualizarVisibilidadArmas()
     {
-        // Alternar entre el hueco 0 y el 1
-        int nuevoIndice = indiceArmaActiva == 0 ? 1 : 0;
-        EquiparArma(nuevoIndice);
+        for (int i = 0; i < armasEquipadas.Length; i++)
+        {
+            if (armasEquipadas[i] != null)
+            {
+                // Solo se activa la que coincide con nuestro índice actual
+                armasEquipadas[i].gameObject.SetActive(i == indiceArmaActiva);
+            }
+        }
     }
 
-    private void ApagarTodasLasArmas()
+    private void ConfigurarArmaEnControlador()
     {
-        foreach(DatosArma arma in armasEquipadas)
+        if (controladorFPS != null && armasEquipadas[indiceArmaActiva] != null)
         {
-            if(arma != null)
-            {
-                arma.gameObject.SetActive(false);
-            }
+            controladorFPS.armaActual = armasEquipadas[indiceArmaActiva];
+
+            // Recalculamos la mira y el IK como ya tenías programado de forma excelente
+            controladorFPS.RecalcularPuntoDeMira();
+            controladorFPS.ActualizarAgarresIK();
         }
     }
 }
