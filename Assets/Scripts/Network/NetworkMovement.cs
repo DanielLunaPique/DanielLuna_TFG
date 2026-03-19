@@ -13,6 +13,7 @@ public class NetworkMovement : NetworkBehaviour
 
     [Header("Sistemas del Jugador")]
     public SistemaEstaminaFPS sistemaEstamina;
+    public ControladorArmasFPS controladorArmas;
 
     [Header("Objetos a apagar en enemigos")]
     public GameObject camaraPrincipal;
@@ -163,8 +164,10 @@ public class NetworkMovement : NetworkBehaviour
         // Miramos si la estamina nos da permiso
         bool tieneEstamina = (sistemaEstamina == null || sistemaEstamina.puedeCorrer);
 
+        bool estaRecargando = controladorArmas != null && controladorArmas.estaRecargando;
+
         // Calculamos la verdad absoluta
-        esprintandoRealmente = quiereCorrer && inputZ > 0 && !inputApuntando && !estaAgachado && !estaTumbado && tieneEstamina;
+        esprintandoRealmente = quiereCorrer && inputZ > 0 && !inputApuntando && !estaAgachado && !estaTumbado && tieneEstamina && !estaRecargando;
 
         if (sistemaEstamina != null)
         {
@@ -184,11 +187,17 @@ public class NetworkMovement : NetworkBehaviour
     void MoverJugador()
     {
         float velocidadActual = velocidadCaminar;
+        bool estaRecargando = controladorArmas != null && controladorArmas.estaRecargando;
 
         if (estaTumbado) velocidadActual = velocidadTumbado;
         else if (estaAgachado) velocidadActual = velocidadAgachado;
         else if (inputApuntando) velocidadActual = velocidadApuntando;
         else if (esprintandoRealmente) velocidadActual = velocidadCorrer;
+
+        if (estaRecargando && !estaAgachado && !estaTumbado)
+        {
+            velocidadActual = velocidadCaminar * 0.7f; 
+        }
 
         Vector3 inputDir = new Vector3(inputX, 0f, inputZ);
         inputDir = Vector3.ClampMagnitude(inputDir, 1f);

@@ -47,30 +47,45 @@ public class InventarioArmas : MonoBehaviour
             return;
         }
 
-        // 1. DESTRUIR EL ARMA VIEJA (Si tenemos las manos llenas)
-        if (armasEquipadas[indiceArmaActiva] != null)
+        // Por defecto, asumimos que vamos a reemplazar el arma que tenemos en las manos
+        int huecoDestino = indiceArmaActiva;
+
+        // 1. BUSCAR UN HUECO LIBRE PRIMERO (Por si solo tenemos 1 arma)
+        for (int i = 0; i < armasEquipadas.Length; i++)
         {
-            Debug.Log($"Destruyendo {armasEquipadas[indiceArmaActiva].gameObject.name} para hacer hueco.");
-            Destroy(armasEquipadas[indiceArmaActiva].gameObject);
+            if (armasEquipadas[i] == null)
+            {
+                huecoDestino = i; // ¡Hemos encontrado un bolsillo vacío!
+                break; // Paramos de buscar
+            }
         }
 
-        // 2. INSTANCIAR EL ARMA NUEVA
-        // La creamos y la hacemos hija del contenedor (para que se mueva con la cámara)
+        // 2. DESTRUIR EL ARMA VIEJA (Solo si el hueco destino ya estaba ocupado)
+        if (armasEquipadas[huecoDestino] != null)
+        {
+            Debug.Log($"Destruyendo {armasEquipadas[huecoDestino].gameObject.name} para hacer hueco.");
+            Destroy(armasEquipadas[huecoDestino].gameObject);
+        }
+
+        // 3. INSTANCIAR EL ARMA NUEVA
         GameObject nuevaArmaObj = Instantiate(statsNuevaArma.prefabArma, contenedorArmas);
 
-        // 3. APLICAR POSICIÓN Y ROTACIÓN DEL SCRIPTABLE OBJECT
+        // 4. APLICAR POSICIÓN Y ROTACIÓN DEL SCRIPTABLE OBJECT
         nuevaArmaObj.transform.localPosition = statsNuevaArma.position;
         nuevaArmaObj.transform.localRotation = Quaternion.Euler(statsNuevaArma.rotation);
 
-        // 4. GUARDAR LOS DATOS EN NUESTRO BOLSILLO (Inventario)
+        // 5. GUARDAR LOS DATOS EN EL HUECO DESTINO
         DatosArma nuevosDatos = nuevaArmaObj.GetComponent<DatosArma>();
-        armasEquipadas[indiceArmaActiva] = nuevosDatos;
+        armasEquipadas[huecoDestino] = nuevosDatos;
 
-        // 5. EQUIPARLA VISUAL Y FÍSICAMENTE
+        // 6. CAMBIAR NUESTRO ÍNDICE ACTIVO A ESTE NUEVO HUECO (Para tenerla en las manos al instante)
+        indiceArmaActiva = huecoDestino;
+
+        // 7. EQUIPARLA VISUAL Y FÍSICAMENTE
         ActualizarVisibilidadArmas();
         ConfigurarArmaEnControlador();
 
-        Debug.Log($"¡Has recibido un/a {statsNuevaArma.nombreArma}!");
+        Debug.Log($"¡Has recibido un/a {statsNuevaArma.nombreArma} en el hueco {huecoDestino}!");
     }
 
     // --- SISTEMA DE CAMBIO DE ARMA ---
@@ -109,6 +124,21 @@ public class InventarioArmas : MonoBehaviour
             // Recalculamos la mira y el IK como ya tenías programado de forma excelente
             controladorFPS.RecalcularPuntoDeMira();
             controladorFPS.ActualizarAgarresIK();
+        }
+    }
+
+    public void RellenarMunicion(EstadisticasArma statsBuscadas)
+    {
+        foreach (DatosArma arma in armasEquipadas)
+        {
+            // Buscamos si tenemos el arma exacta de la pared
+            if (arma != null && arma.estadisticas == statsBuscadas)
+            {
+                // Llenamos la reserva al máximo 
+                arma.balasReserva = arma.estadisticas.balasCargador * 9;
+                Debug.Log($"¡Munición al máximo para {statsBuscadas.nombreArma}!");
+                return;
+            }
         }
     }
 }

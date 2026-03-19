@@ -8,19 +8,29 @@ public class SistemaRecargaFPS : MonoBehaviour
 
     // [FUTURO ANIMATOR] Aquí pondremos: public Animator animatorBrazos;
 
+    private Coroutine corrutinaRecargaActiva;
+
     void Update()
     {
         if (controladorFPS == null || controladorFPS.armaActual == null) return;
 
         DatosArma arma = controladorFPS.armaActual;
 
-        // --- 1. RECARGA MANUAL ---
+        // --- 1. SPRINT CANCEL ---
+        // Si estamos recargando, y el jugador pulsa la tecla de correr Y se está moviendo hacia adelante...
+        if (controladorFPS.estaRecargando && Input.GetKey(KeyCode.LeftShift) && Input.GetAxis("Vertical") > 0)
+        {
+            CancelarRecarga();
+            return; // Salimos del Update para no hacer nada más en este fotograma
+        }
+
+        // --- 2. RECARGA MANUAL ---
         if (Input.GetKeyDown(KeyCode.R) && !controladorFPS.estaRecargando)
         {
-            // Comprobamos si realmente necesitamos recargar
             if (arma.balasActuales < arma.estadisticas.balasCargador && arma.balasReserva > 0)
             {
-                StartCoroutine(RutinaRecarga(arma));
+                // Guardamos la corrutina en nuestra variable
+                corrutinaRecargaActiva = StartCoroutine(RutinaRecarga(arma));
             }
             else
             {
@@ -28,11 +38,30 @@ public class SistemaRecargaFPS : MonoBehaviour
             }
         }
 
-        // Si el cargador está vacío, no estamos recargando ya, y tenemos balas en reserva...
+        // --- 3. RECARGA AUTOMÁTICA ---
         if (arma.balasActuales <= 0 && !controladorFPS.estaRecargando && arma.balasReserva > 0)
         {
-            StartCoroutine(RutinaRecarga(arma));
+            // Guardamos la corrutina en nuestra variable
+            corrutinaRecargaActiva = StartCoroutine(RutinaRecarga(arma));
         }
+    }
+
+    private void CancelarRecarga()
+    {
+        // 1. Matamos el temporizador
+        if (corrutinaRecargaActiva != null)
+        {
+            StopCoroutine(corrutinaRecargaActiva);
+            corrutinaRecargaActiva = null;
+        }
+
+        // 2. Apagamos el semáforo para que el jugador pueda volver a disparar o correr
+        controladorFPS.estaRecargando = false;
+
+        Debug.Log("¡Recarga Cancelada por Sprint!");
+
+        // [FUTURO ANIMATOR] Aquí le dirías a los brazos que vuelvan a la postura de correr
+        // animatorBrazos.SetTrigger("CancelarRecarga");
     }
 
     private IEnumerator RutinaRecarga(DatosArma arma)
@@ -60,5 +89,6 @@ public class SistemaRecargaFPS : MonoBehaviour
 
         // 4. PONEMOS EL SEMÁFORO EN VERDE
         controladorFPS.estaRecargando = false;
+        corrutinaRecargaActiva = null;
     }
 }
