@@ -9,3 +9,10 @@ MonoImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 213197
+  packageName: Unity Terrain - URP Demo Scene
+  packageVersion: 
+  assetPath: Assets/Terreno/TerrainDemoScene_URP/Scripts/TerrainTreeToggle.cs
+  uploadId: 0

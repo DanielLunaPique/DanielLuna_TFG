@@ -199,3 +199,4 @@ Material:
     - _Thickness_Remap: {r: 0.1, g: 1, b: 0, a: 0}
     - _blendOffset: {r: 1024, g: 1024, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

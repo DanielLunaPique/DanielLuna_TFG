@@ -116,3 +116,10 @@ ModelImporter:
   userData: processed_v01model_processed_v01
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 213197
+  packageName: Unity Terrain - URP Demo Scene
+  packageVersion: 1.0.3
+  assetPath: Assets/Terreno/TerrainDemoScene_URP/Prefabs/Rocks/Models/Rock_D.FBX
+  uploadId: 727820

@@ -114,3 +114,10 @@ TextureImporter:
   userData: texture_processed_v01
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 213197
+  packageName: Unity Terrain - URP Demo Scene
+  packageVersion: 1.0.3
+  assetPath: Assets/Terreno/TerrainDemoScene_URP/Prefabs/Foliage/Red_Bush/Textures/Red_Bush_BaseColor.tif
+  uploadId: 727820

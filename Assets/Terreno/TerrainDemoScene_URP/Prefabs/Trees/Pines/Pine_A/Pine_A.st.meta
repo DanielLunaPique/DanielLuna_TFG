@@ -91,3 +91,10 @@ SpeedTreeImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 213197
+  packageName: Unity Terrain - URP Demo Scene
+  packageVersion: 1.0.3
+  assetPath: Assets/Terreno/TerrainDemoScene_URP/Prefabs/Trees/Pines/Pine_A/Pine_A.st
+  uploadId: 727820

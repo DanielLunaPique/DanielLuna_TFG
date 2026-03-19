@@ -33,3 +33,10 @@ TrueTypeFontImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 213197
+  packageName: Unity Terrain - URP Demo Scene
+  packageVersion: 1.0.3
+  assetPath: Assets/Terreno/TerrainDemoScene_URP/TextMeshPro/Fonts/InterRegular.otf
+  uploadId: 727820

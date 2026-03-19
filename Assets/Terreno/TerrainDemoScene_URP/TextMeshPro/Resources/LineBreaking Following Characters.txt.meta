@@ -6,3 +6,11 @@ TextScriptImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 213197
+  packageName: Unity Terrain - URP Demo Scene
+  packageVersion: 
+  assetPath: Assets/Terreno/TerrainDemoScene_URP/TextMeshPro/Resources/LineBreaking
+    Following Characters.txt
+  uploadId: 0

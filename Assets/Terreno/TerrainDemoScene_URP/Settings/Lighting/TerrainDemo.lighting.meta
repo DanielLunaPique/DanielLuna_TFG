@@ -6,3 +6,10 @@ NativeFormatImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 213197
+  packageName: Unity Terrain - URP Demo Scene
+  packageVersion: 
+  assetPath: Assets/Terreno/TerrainDemoScene_URP/Settings/Lighting/TerrainDemo.lighting
+  uploadId: 0

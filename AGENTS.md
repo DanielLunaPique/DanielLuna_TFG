@@ -2,7 +2,7 @@
 - Project name: TFG
 - Unity version: Unity 6000.3.8f1
 - Active game object:
-  - Name: Weapon_Container
+  - Name: Player
   - Tag: Untagged
-  - Layer: LocalViewModel
+  - Layer: Player
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

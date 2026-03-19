@@ -225,7 +225,7 @@ public class NetworkMovement : NetworkBehaviour
 
         // Usamos la variable global unificada
         MandarParametrosAnimator(animatorCuerpo, inputX, animZ, esprintandoRealmente, inputApuntando, inputDisparando);
-        MandarParametrosAnimator(animatorBrazosFPS, inputX, animZ, esprintandoRealmente, inputApuntando, inputDisparando);
+        //MandarParametrosAnimator(animatorBrazosFPS, inputX, animZ, esprintandoRealmente, inputApuntando, inputDisparando);
     }
 
     void MandarParametrosAnimator(Animator anim, float x, float z, bool sprint, bool apuntando, bool disparando)
