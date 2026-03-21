@@ -7,6 +7,7 @@ public class EstadisticasArma : ScriptableObject
     [Header("Informacion General")]
     public string nombreArma = "Arma Desconocida";
     public GameObject prefabArma;
+    public GameObject prefabVisualCaja;
 
     [Header("Estadisticas de Combate")]
     public int daño = 25;

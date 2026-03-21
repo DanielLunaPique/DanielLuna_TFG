@@ -27,7 +27,7 @@ public class GameManager : NetworkBehaviour
     [Header("Ajustes")]
     public float tiempoPreparacion = 10f;
     public int spawnsSimultaneos = 5;
-    public float tiempoEntreOleadas = 1f;
+    public float tiempoEntreOleadas = 2f;
 
     [Header("Prefab Zombie")]
     public GameObject prefabZombie;
@@ -37,6 +37,9 @@ public class GameManager : NetworkBehaviour
     public AudioClip sonidoCambioRonda;
 
     public static GameManager Instance;
+
+    [Header("Objetos Globales")]
+    public NetworkVariable<bool> pataDeCabraDesbloqueada = new NetworkVariable<bool> ();
 
     private void Awake()
     {

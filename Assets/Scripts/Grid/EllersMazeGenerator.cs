@@ -51,6 +51,12 @@ public class EllersMazeGenerator : MonoBehaviour
     [SerializeField] GameObject streetLampPrefab;
     [Range(0, 100)] [SerializeField] int decorationChance = 15;
 
+    [Header("Spawns de Zombis")]
+    [SerializeField] GameObject zonaZombiesPrefab; // Un prefab vacío que tenga tu script ZonaZombies
+    [SerializeField] GameObject puntoSpawnPrefab;  // El prefab que tiene el script PuntoSpawnZombie
+    [SerializeField] int maxZombies = 6;
+    [SerializeField] float minZombieDistance = 3.0f;
+
     private CellData[,] logicalMap;
 
 
@@ -326,6 +332,22 @@ public class EllersMazeGenerator : MonoBehaviour
 
     private void PlaceWall_XZ(Vector3 dir, int x, int z)
     {
+        if (dir == Vector3.right && z == gridSpawner.height)
+        {
+            // Calculamos cuáles son las dos casillas del centro
+            int centroDerecha = gridSpawner.width / 2;
+            int centroIzquierda = centroDerecha - 1;
+
+            // Si la coordenada X coincide con alguna de las dos centrales...
+            if (x == centroDerecha || x == centroIzquierda)
+            {
+                // ¡Abortamos la función! 
+                // Al hacer 'return', no se instancia el muro visual y, lo más importante,
+                // no se actualiza el logicalMap, por lo que el A* sabrá que ahí NO hay pared (puerta abierta).
+                return;
+            }
+        }
+
         Vector3 position = gridXZ.GetWorldPosition(x, z);
         position.y = yValue;
 
@@ -468,7 +490,86 @@ public class EllersMazeGenerator : MonoBehaviour
         {
             int randomIndex = UnityEngine.Random.Range(0, generatedHangars.Count);
             targetHangar = generatedHangars[randomIndex].gameObject;
-            Debug.Log($"Target Hangar seleccionado en: {targetHangar.transform.position}");
+        }
+
+        // --- Filtrar los Dead Ends sobrantes para los Zombis ---
+        List<DeadEndCandidate> leftoverCandidates = new List<DeadEndCandidate>();
+
+        foreach (var candidate in allCandidates)
+        {
+            // Comprobamos si este candidato YA fue usado para un hangar
+            bool isUsedForHangar = selectedHangars.Exists(h => h.x == candidate.x && h.z == candidate.z);
+
+            if (!isUsedForHangar)
+            {
+                leftoverCandidates.Add(candidate);
+            }
+        }
+
+        // Llamamos a la función para instanciar los spawns
+        SpawnZombiePoints(leftoverCandidates);
+    }
+
+    private void SpawnZombiePoints(List<DeadEndCandidate> candidates)
+    {
+        if (zonaZombiesPrefab == null || puntoSpawnPrefab == null) return;
+
+        // 1. Instanciar el contenedor principal de la zona
+        GameObject zonaObj = Instantiate(zonaZombiesPrefab, Vector3.zero, Quaternion.identity);
+        ZonaZombies zonaScript = zonaObj.GetComponent<ZonaZombies>();
+
+        // 2. Barajar los candidatos sobrantes
+        var rng = new System.Random();
+        candidates = candidates.OrderBy(a => rng.Next()).ToList();
+        List<DeadEndCandidate> selectedSpawns = new List<DeadEndCandidate>();
+
+        // 3. Filtrado por distancia
+        foreach (var candidate in candidates)
+        {
+            if (selectedSpawns.Count >= maxZombies) break;
+
+            bool isFarEnough = true;
+            foreach (var selected in selectedSpawns)
+            {
+                float dist = Vector2.Distance(new Vector2(candidate.x, candidate.z), new Vector2(selected.x, selected.z));
+                if (dist < minZombieDistance)
+                {
+                    isFarEnough = false;
+                    break;
+                }
+            }
+
+            if (isFarEnough)
+            {
+                selectedSpawns.Add(candidate);
+
+                // Calcular posición real en el mundo
+                Vector3 position = gridXZ.GetWorldPosition(candidate.x, candidate.z);
+                float cellSize = gridXZ.GetCellSize();
+                Vector3 centerPos = new Vector3(position.x + cellSize / 2, yValue, position.z + cellSize / 2);
+
+                // --- Calcular la rotación hacia la salida del Dead End ---
+                Quaternion rotation = Quaternion.identity;
+                CellData cell = candidate.cellData;
+
+                if (!cell.wallBottom) // Abierto ABAJO (Sur) -> Zombi mira al Sur
+                    rotation = Quaternion.Euler(0, 180, 0);
+                else if (!cell.wallTop) // Abierto ARRIBA (Norte) -> Zombi mira al Norte
+                    rotation = Quaternion.Euler(0, 0, 0);
+                else if (!cell.wallLeft) // Abierto IZQUIERDA (Oeste) -> Zombi mira al Oeste
+                    rotation = Quaternion.Euler(0, -90, 0);
+                else if (!cell.wallRight) // Abierto DERECHA (Este) -> Zombi mira al Este
+                    rotation = Quaternion.Euler(0, 90, 0);
+
+                // 4. Instanciar el punto de spawn con la ROTACIÓN calculada
+                Instantiate(puntoSpawnPrefab, centerPos, rotation, zonaObj.transform);
+            }
+        }
+
+        // 5. Autocompletar la lista del script ZonaZombies
+        if (zonaScript != null)
+        {
+            zonaScript.AutocompletarSpawns();
         }
     }
 
