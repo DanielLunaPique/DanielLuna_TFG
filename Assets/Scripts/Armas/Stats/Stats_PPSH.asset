@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EstadisticasArma
   nombreArma: PPSH-41
   prefabArma: {fileID: 6071584549293007168, guid: 241c6993ccdb37340bc6a4a177e644b7, type: 3}
+  prefabVisualCaja: {fileID: 6071584549293007168, guid: 28ac54dd254b3184ba29147b5674ee64, type: 3}
   "da\xF1o": 22
   cadenciaDisparo: 0.066
   balasCargador: 71

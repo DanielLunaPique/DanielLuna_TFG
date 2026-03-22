@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EstadisticasArma
   nombreArma: BRECCI
   prefabArma: {fileID: 6810826342680241524, guid: 0b981673e3286e04787b9cb64d638b20, type: 3}
+  prefabVisualCaja: {fileID: 6810826342680241524, guid: 576c2d82cf0196c4c9494964a84d7db2, type: 3}
   "da\xF1o": 40
   cadenciaDisparo: 0.283
   balasCargador: 8

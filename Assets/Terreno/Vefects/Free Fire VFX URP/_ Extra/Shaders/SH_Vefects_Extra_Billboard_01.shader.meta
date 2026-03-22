@@ -4,7 +4,13 @@ ShaderImporter:
   externalObjects: {}
   defaultTextures: []
   nonModifiableTextures: []
-  preprocessorOverride: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 303479
+  packageName: Zap VFX - URP
+  packageVersion: 1.0.3
+  assetPath: Assets/Terreno/Vefects/Free Fire VFX URP/_ Extra/Shaders/SH_Vefects_Extra_Billboard_01.shader
+  uploadId: 778923

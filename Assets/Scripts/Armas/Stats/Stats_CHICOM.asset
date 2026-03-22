@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EstadisticasArma
   nombreArma: CHICOM
   prefabArma: {fileID: 3386663550301400852, guid: 096cb921cb878724db474ea540032640, type: 3}
+  prefabVisualCaja: {fileID: 3386663550301400852, guid: f185b00478dcb0b46bbc8e5f5e28cd1f, type: 3}
   "da\xF1o": 19
   cadenciaDisparo: 0.05
   balasCargador: 36
