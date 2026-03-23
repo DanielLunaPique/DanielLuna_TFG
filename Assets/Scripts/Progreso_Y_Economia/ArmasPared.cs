@@ -11,6 +11,7 @@ public class ArmasPared : NetworkBehaviour
     private bool jugadorEnZona = false;
     private InventarioArmas inventarioLocal;
     private SistemaPuntosFPS bolsilloLocal;
+    private UIManager uiManagerLocal;
 
     void Update()
     {
@@ -54,15 +55,23 @@ public class ArmasPared : NetworkBehaviour
         NetworkObject netObj = other.GetComponent<NetworkObject>();
         if (netObj != null && netObj.IsLocalPlayer)
         {
-            jugadorEnZona = true;
             inventarioLocal = other.GetComponentInChildren<InventarioArmas>();
-            bolsilloLocal = other.GetComponent<SistemaPuntosFPS>();
+            bolsilloLocal = other.GetComponentInChildren<SistemaPuntosFPS>();
+
+            uiManagerLocal = netObj.GetComponentInChildren<UIManager>();
+
+            if (inventarioLocal == null || bolsilloLocal == null) return;
+
+            jugadorEnZona = true;
 
             bool tieneArma = ComprobarSiTieneArma();
             int coste = tieneArma ? precioCompra / 2 : precioCompra;
             string tipo = tieneArma ? "Munición de" : "Comprar";
 
-            Debug.Log($"[UI] Pulsa 'F' para {tipo} {armaAComprar.nombreArma} [Coste: {coste}]");
+            if (uiManagerLocal != null)
+            {
+                uiManagerLocal.MostrarTextoInteraccion($"Pulsa [F] para {tipo} {armaAComprar.nombreArma} - {coste} pts");
+            }
         }
     }
 
@@ -74,7 +83,12 @@ public class ArmasPared : NetworkBehaviour
             jugadorEnZona = false;
             inventarioLocal = null;
             bolsilloLocal = null;
-            Debug.Log("[UI] (Ocultar texto)");
+
+            if (uiManagerLocal != null)
+            {
+                uiManagerLocal.OcultarTextoInteraccion();
+                uiManagerLocal = null;
+            }
         }
     }
 
@@ -92,7 +106,6 @@ public class ArmasPared : NetworkBehaviour
             // 2. Intentamos cobrarle
             if (bolsillo != null && bolsillo.IntentarComprar(coste))
             {
-                Debug.Log($"[Servidor] Compra aceptada. Enviando el arma al jugador {idComprador}.");
 
                 // 3. Preparamos un "sobre cerrado" para que solo este jugador reciba el mensaje
                 ClientRpcParams parametrosPrivados = new ClientRpcParams
@@ -100,12 +113,14 @@ public class ArmasPared : NetworkBehaviour
                     Send = new ClientRpcSendParams { TargetClientIds = new ulong[] { idComprador } }
                 };
 
+                if (uiManagerLocal != null)
+                {
+                    uiManagerLocal.OcultarTextoInteraccion();
+                    uiManagerLocal = null;
+                }
+
                 // 4. Mandamos el mensaje privado
                 EntregarArmaClientRpc(eraMunicion, parametrosPrivados);
-            }
-            else
-            {
-                Debug.Log($"[Servidor] El jugador {idComprador} no tiene dinero suficiente.");
             }
         }
     }

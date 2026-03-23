@@ -25,7 +25,25 @@ public class Zombie : MonoBehaviour
 
             GameManager.Instance.ZombieEliminado();
 
-            GetComponent<NetworkObject>().Despawn();
+            Morir();
+        }
+    }
+
+    public void Morir()
+    {
+        // En vez de hacer Destroy(gameObject) directamente, le pedimos al servidor que lo haga
+        PedirDespawnServerRpc();
+    }
+
+    // 2. El servidor recibe la petición y él sí tiene permisos para destruirlo para todos
+    [ServerRpc(RequireOwnership = false)]
+    private void PedirDespawnServerRpc()
+    {
+        NetworkObject netObj = GetComponent<NetworkObject>();
+        if (netObj != null && netObj.IsSpawned)
+        {
+            // Despawn borra el objeto de la red y además hace el Destroy() automáticamente
+            netObj.Despawn();
         }
     }
 

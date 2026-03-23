@@ -6,7 +6,7 @@ public class SistemaPuntosFPS : NetworkBehaviour
 {
     [Header("Economia del jugador")]
     public NetworkVariable<int> puntos = new NetworkVariable<int>(
-        500,
+        50000,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
     );
@@ -42,7 +42,6 @@ public class SistemaPuntosFPS : NetworkBehaviour
             return true;
         }
 
-        Debug.Log("No money, pobre");
         return false;
     }
 }

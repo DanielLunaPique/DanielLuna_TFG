@@ -4,6 +4,7 @@ using UnityEngine;
 public class PataDeCabra : NetworkBehaviour
 {
     private bool jugadorCerca = false;
+    private UIManager uiManagerLocal;
 
     void Update()
     {
@@ -23,23 +24,44 @@ public class PataDeCabra : NetworkBehaviour
         Debug.Log("[Servidor] ¡Un jugador ha encontrado la Pata de Cabra!");
 
         // 2. Destruimos el objeto de la escena para todos
+        if (uiManagerLocal != null)
+        {
+            uiManagerLocal.OcultarTextoInteraccion();
+            uiManagerLocal = null;
+        }
+
         GetComponent<NetworkObject>().Despawn();
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.GetComponentInParent<NetworkObject>() != null && other.GetComponentInParent<NetworkObject>().IsLocalPlayer)
+        NetworkObject netObj = other.GetComponentInParent<NetworkObject>();
+        if (netObj != null && netObj.IsLocalPlayer)
         {
             jugadorCerca = true;
-            Debug.Log("[UI] Pulsa 'F' para recoger la Pata de Cabra");
+
+            // Buscamos desde la raíz hacia abajo
+            uiManagerLocal = netObj.GetComponentInChildren<UIManager>();
+
+            if (uiManagerLocal != null)
+            {
+                uiManagerLocal.MostrarTextoInteraccion("Pulsa [F] para recoger Pata de Cabra");
+            }
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.GetComponentInParent<NetworkObject>() != null && other.GetComponentInParent<NetworkObject>().IsLocalPlayer)
+        NetworkObject netObj = other.GetComponentInParent<NetworkObject>();
+        if (netObj != null && netObj.IsLocalPlayer)
         {
             jugadorCerca = false;
+
+            if (uiManagerLocal != null)
+            {
+                uiManagerLocal.OcultarTextoInteraccion();
+                uiManagerLocal = null;
+            }
         }
     }
 }

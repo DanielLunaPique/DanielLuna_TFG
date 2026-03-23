@@ -14,6 +14,7 @@ public class PuertaDesbloqueable : NetworkBehaviour
     public NetworkVariable<bool> estaAbierta = new NetworkVariable<bool>(false);
 
     private bool jugadorEnZona = false;
+    private UIManager uiManagerLocal;
 
     void Update()
     {
@@ -37,9 +38,11 @@ public class PuertaDesbloqueable : NetworkBehaviour
         if (netObj != null && netObj.IsLocalPlayer)
         {
             jugadorEnZona = true;
-
-            // De momento usamos la consola. Más adelante conectaremos tu Canvas aquí.
-            Debug.Log($"[UI] Pulsa 'F' para abrir el paso a {nombreZona} [Coste: {coste}]");
+            uiManagerLocal = netObj.GetComponentInChildren<UIManager>();
+            if (uiManagerLocal != null)
+            {
+                uiManagerLocal.MostrarTextoInteraccion($"Pulsa 'F' para abrir el paso a {nombreZona} [Coste: {coste} pts");
+            }
         }
     }
 
@@ -50,7 +53,11 @@ public class PuertaDesbloqueable : NetworkBehaviour
         if (netObj != null && netObj.IsLocalPlayer)
         {
             jugadorEnZona = false;
-            Debug.Log("[UI] (Apagar texto de la pantalla)");
+            if (uiManagerLocal != null)
+            {
+                uiManagerLocal.OcultarTextoInteraccion();
+                uiManagerLocal = null;
+            }
         }
     }
 
@@ -73,16 +80,14 @@ public class PuertaDesbloqueable : NetworkBehaviour
                     if(zona != null)
                     {
                         zona.estaActiva = true;
-                        Debug.Log($"[Servidor] ¡Zona {zona.gameObject.name} activada!");
                     }
+                }
+                if(uiManagerLocal != null)
+                {
+                    uiManagerLocal.OcultarTextoInteraccion();
                 }
 
                 GetComponent<NetworkObject>().Despawn();
-            }
-
-            else
-            {
-                Debug.Log("[Servidor] Compra rechazada. Faltan puntos.");
             }
         }
     }

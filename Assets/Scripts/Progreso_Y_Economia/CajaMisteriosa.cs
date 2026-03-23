@@ -40,6 +40,7 @@ public class CajaMisteriosa : NetworkBehaviour
     private GameObject modeloArmaVisual;
     private bool jugadorEnZona = false;
     private SistemaPuntosFPS bolsilloLocal;
+    private UIManager uiManagerLocal;
 
     public override void OnNetworkSpawn()
     {
@@ -66,24 +67,30 @@ public class CajaMisteriosa : NetworkBehaviour
 
     void Update()
     {
-        if (!jugadorEnZona || !esLaCajaActiva.Value) return;
+        if (!jugadorEnZona || !esLaCajaActiva.Value || uiManagerLocal == null) return;
 
         if (estadoActual.Value == EstadoCaja.Inactiva)
         {
             if (!GameManager.Instance.pataDeCabraDesbloqueada.Value)
             {
-                // [FUTURO UI] "Necesitas la Pata de Cabra para abrir esto."
+                uiManagerLocal.MostrarTextoInteraccion("Necesitas la Pata de Cabra para abrir esto");
             }
             else
             {
-                // [FUTURO UI] "Pulsa 'F' para usar la Caja [Coste: 950]"
+                uiManagerLocal.MostrarTextoInteraccion($"Pulsa [F] para usar la Caja - {precioCaja} pts");
                 if (Input.GetKeyDown(KeyCode.F)) SolicitarCaja();
             }
+        }
+        else if (estadoActual.Value == EstadoCaja.Procesando)
+        {
+            // Mientras salen los rayos morados, ocultamos el texto
+            uiManagerLocal.OcultarTextoInteraccion();
         }
         else if (estadoActual.Value == EstadoCaja.EsperandoRecogida)
         {
             if (NetworkManager.Singleton.LocalClientId == idCompradorActual.Value)
             {
+                uiManagerLocal.MostrarTextoInteraccion($"Pulsa [F] para coger {armasPosibles[indiceArmaGenerada.Value].nombreArma}");
                 if (Input.GetKeyDown(KeyCode.F)) RecogerArmaServerRpc();
             }
         }
@@ -283,6 +290,7 @@ public class CajaMisteriosa : NetworkBehaviour
         NetworkObject netObj = other.GetComponentInParent<NetworkObject>();
         if (netObj != null && netObj.IsLocalPlayer)
         {
+            uiManagerLocal = netObj.GetComponentInChildren<UIManager>();
             jugadorEnZona = true;
             bolsilloLocal = other.GetComponentInParent<SistemaPuntosFPS>();
         }
@@ -295,6 +303,12 @@ public class CajaMisteriosa : NetworkBehaviour
         {
             jugadorEnZona = false;
             bolsilloLocal = null;
+
+            if (uiManagerLocal != null)
+            {
+                uiManagerLocal.OcultarTextoInteraccion();
+                uiManagerLocal = null;
+            }
         }
     }
 }
