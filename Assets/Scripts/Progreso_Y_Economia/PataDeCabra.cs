@@ -64,4 +64,14 @@ public class PataDeCabra : NetworkBehaviour
             }
         }
     }
+
+    public override void OnNetworkDespawn()
+    {
+        // Esto se ejecuta localmente en el Cliente justo antes de que la puerta desaparezca
+        if (uiManagerLocal != null)
+        {
+            uiManagerLocal.OcultarTextoInteraccion();
+            uiManagerLocal = null;
+        }
+    }
 }

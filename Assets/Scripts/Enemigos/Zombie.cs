@@ -1,8 +1,7 @@
 using UnityEngine;
 using Unity.Netcode;
 
-
-public class Zombie : MonoBehaviour
+public class Zombie : NetworkBehaviour
 {
     [Header("Estadisticas")]
     public NetworkVariable<int> salud = new NetworkVariable<int>(100);
@@ -17,49 +16,37 @@ public class Zombie : MonoBehaviour
 
         salud.Value -= damage;
 
-        OtorgarPuntosClienteRpc(puntosPorImpacto, idAtacante);
+        // 1. El Servidor suma el dinero REAL. La UI del cliente se actualizará sola.
+        IngresarDineroEnBancoServidor(idAtacante, puntosPorImpacto);
 
-        if(salud.Value <= 0)
+        if (salud.Value <= 0)
         {
-            OtorgarPuntosClienteRpc(puntosPorMuerte, idAtacante);
+            // 2. Ingresamos el dinero de la muerte
+            IngresarDineroEnBancoServidor(idAtacante, puntosPorMuerte);
 
-            GameManager.Instance.ZombieEliminado();
-
-            Morir();
-        }
-    }
-
-    public void Morir()
-    {
-        // En vez de hacer Destroy(gameObject) directamente, le pedimos al servidor que lo haga
-        PedirDespawnServerRpc();
-    }
-
-    // 2. El servidor recibe la petición y él sí tiene permisos para destruirlo para todos
-    [ServerRpc(RequireOwnership = false)]
-    private void PedirDespawnServerRpc()
-    {
-        NetworkObject netObj = GetComponent<NetworkObject>();
-        if (netObj != null && netObj.IsSpawned)
-        {
-            // Despawn borra el objeto de la red y además hace el Destroy() automáticamente
-            netObj.Despawn();
-        }
-    }
-
-    [ClientRpc]
-    private void OtorgarPuntosClienteRpc (int cantidad, ulong idAtacante)
-    {
-        if(NetworkManager.Singleton.LocalClientId == idAtacante)
-        {
-            var miJugador = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
-            if(miJugador != null)
+            if (GameManager.Instance != null)
             {
-                var bolsillo = miJugador.GetComponent<SistemaPuntosFPS>();
-                if(bolsillo != null)
-                {
-                    bolsillo.SumarPuntos(cantidad);
-                }
+                GameManager.Instance.ZombieEliminado();
+            }
+
+            // 3. Destruimos al zombie
+            NetworkObject netObj = GetComponent<NetworkObject>();
+            if (netObj != null && netObj.IsSpawned)
+            {
+                netObj.Despawn();
+            }
+        }
+    }
+
+    // Función segura que solo ejecuta el Servidor para modificar la NetworkVariable
+    private void IngresarDineroEnBancoServidor(ulong idJugador, int cantidad)
+    {
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(idJugador, out var cliente))
+        {
+            var bolsillo = cliente.PlayerObject.GetComponentInChildren<SistemaPuntosFPS>();
+            if (bolsillo != null)
+            {
+                bolsillo.puntos.Value += cantidad; // ESTO ES EL DINERO REAL
             }
         }
     }

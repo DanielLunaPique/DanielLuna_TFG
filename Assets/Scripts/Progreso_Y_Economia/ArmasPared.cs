@@ -101,7 +101,7 @@ public class ArmasPared : NetworkBehaviour
         var jugador = NetworkManager.Singleton.ConnectedClients[idComprador].PlayerObject;
         if (jugador != null)
         {
-            SistemaPuntosFPS bolsillo = jugador.GetComponent<SistemaPuntosFPS>();
+            SistemaPuntosFPS bolsillo = jugador.GetComponentInChildren<SistemaPuntosFPS>();
 
             // 2. Intentamos cobrarle
             if (bolsillo != null && bolsillo.IntentarComprar(coste))

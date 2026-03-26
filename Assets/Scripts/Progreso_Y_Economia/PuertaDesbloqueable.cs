@@ -1,6 +1,5 @@
 using UnityEngine;
 using Unity.Netcode;
-using Unity.VisualScripting;
 
 public class PuertaDesbloqueable : NetworkBehaviour
 {
@@ -18,13 +17,12 @@ public class PuertaDesbloqueable : NetworkBehaviour
 
     void Update()
     {
-        if(jugadorEnZona && !estaAbierta.Value)
+        if (jugadorEnZona && !estaAbierta.Value)
         {
-            if (Input.GetKey(KeyCode.F))
+            if (Input.GetKeyDown(KeyCode.F))
             {
-                ulong idPlayer = NetworkManager.Singleton.LocalClientId;
-                AbrirPuertaServerRpc(idPlayer);
-                
+                ulong miDNI = NetworkManager.Singleton.LocalClientId;
+                ComprarPuertaServerRpc(miDNI);
             }
         }
     }
@@ -33,26 +31,28 @@ public class PuertaDesbloqueable : NetworkBehaviour
     {
         if (estaAbierta.Value) return;
 
-        // Comprobamos si el que ha chocado es un jugador y si es NUESTRO jugador
-        NetworkObject netObj = other.GetComponent<NetworkObject>();
+        // Usamos GetComponentInParent porque el collider suele colgar de la raíz del Player
+        NetworkObject netObj = other.GetComponentInParent<NetworkObject>();
         if (netObj != null && netObj.IsLocalPlayer)
         {
             jugadorEnZona = true;
             uiManagerLocal = netObj.GetComponentInChildren<UIManager>();
+
             if (uiManagerLocal != null)
             {
-                uiManagerLocal.MostrarTextoInteraccion($"Pulsa 'F' para abrir el paso a {nombreZona} [Coste: {coste} pts");
+                uiManagerLocal.MostrarTextoInteraccion($"Pulsa 'F' para abrir el paso a {nombreZona} [Coste: {coste} pts]");
             }
         }
     }
 
-    // Cuando salimos del área invisible...
     private void OnTriggerExit(Collider other)
     {
-        NetworkObject netObj = other.GetComponent<NetworkObject>();
+        // Corregido: GetComponentInParent igual que en el Enter
+        NetworkObject netObj = other.GetComponentInParent<NetworkObject>();
         if (netObj != null && netObj.IsLocalPlayer)
         {
             jugadorEnZona = false;
+
             if (uiManagerLocal != null)
             {
                 uiManagerLocal.OcultarTextoInteraccion();
@@ -61,34 +61,40 @@ public class PuertaDesbloqueable : NetworkBehaviour
         }
     }
 
-
     [ServerRpc(RequireOwnership = false)]
-    private void AbrirPuertaServerRpc(ulong idPlayer)
+    public void ComprarPuertaServerRpc(ulong idComprador)
     {
-        if (estaAbierta.Value) return;
+        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(idComprador, out var cliente)) return;
 
-        var jugador = NetworkManager.Singleton.ConnectedClients[idPlayer].PlayerObject;
-        if(jugador != null)
+        var jugador = cliente.PlayerObject;
+        if (jugador == null) return;
+
+        SistemaPuntosFPS bolsillo = jugador.GetComponentInChildren<SistemaPuntosFPS>();
+        if (bolsillo == null) return;
+
+        if (bolsillo.IntentarComprar(coste))
         {
-            SistemaPuntosFPS bolsillo = jugador.GetComponent<SistemaPuntosFPS>();
-            if (bolsillo != null && bolsillo.IntentarComprar(coste))
+            estaAbierta.Value = true;
+
+            // El Servidor destruye la puerta. Esto disparará OnNetworkDespawn en todos lados.
+            NetworkObject netObj = GetComponent<NetworkObject>();
+            if (netObj != null && netObj.IsSpawned)
             {
-                estaAbierta.Value = true;
-
-                foreach(ZonaZombies zona in zonasADesbloquear)
-                {
-                    if(zona != null)
-                    {
-                        zona.estaActiva = true;
-                    }
-                }
-                if(uiManagerLocal != null)
-                {
-                    uiManagerLocal.OcultarTextoInteraccion();
-                }
-
-                GetComponent<NetworkObject>().Despawn();
+                netObj.Despawn();
             }
+        }
+    }
+
+    // ==========================================
+    // LA SOLUCIÓN: Limpieza justo antes de morir
+    // ==========================================
+    public override void OnNetworkDespawn()
+    {
+        // Esto se ejecuta localmente en el Cliente justo antes de que la puerta desaparezca
+        if (uiManagerLocal != null)
+        {
+            uiManagerLocal.OcultarTextoInteraccion();
+            uiManagerLocal = null;
         }
     }
 }

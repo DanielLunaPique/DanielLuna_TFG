@@ -17,28 +17,27 @@ public class UIManager : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        // 1. Conectar los Puntos
         bolsillo = GetComponentInParent<SistemaPuntosFPS>();
         if (bolsillo != null)
         {
-            bolsillo.OnPuntosCambiados += ActualizarTextoPuntos;
-            ActualizarTextoPuntos(bolsillo.puntos.Value);
+            // LA MAGIA: Ahora la UI vigila la variable de red directamente
+            bolsillo.puntos.OnValueChanged += ActualizarTextoPuntos;
+            ActualizarTextoPuntos(0, bolsillo.puntos.Value);
         }
 
-        // 2. Conectar la Ronda
         if (GameManager.Instance != null)
         {
             GameManager.Instance.rondaActual.OnValueChanged += ActualizarTextoRonda;
             ActualizarTextoRonda(0, GameManager.Instance.rondaActual.Value);
         }
 
-        // --- NUEVO: Asegurarnos de que el texto empieza apagado ---
         if (textoInteraccion != null) textoInteraccion.gameObject.SetActive(false);
     }
 
-    private void ActualizarTextoPuntos(int nuevosPuntos)
+    // NetworkVariable siempre envía el valor viejo y el nuevo, así que actualizamos la función:
+    private void ActualizarTextoPuntos(int valorViejo, int valorNuevo)
     {
-        if (textoPuntos != null) textoPuntos.text = $"$ {nuevosPuntos}";
+        if (textoPuntos != null) textoPuntos.text = $"$ {valorNuevo}";
     }
 
     private void ActualizarTextoRonda(int rondaAnterior, int rondaNueva)
@@ -70,7 +69,8 @@ public class UIManager : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        if (bolsillo != null) bolsillo.OnPuntosCambiados -= ActualizarTextoPuntos;
+        // Acuérdate de cambiar aquí también la desconexión
+        if (bolsillo != null) bolsillo.puntos.OnValueChanged -= ActualizarTextoPuntos;
         if (GameManager.Instance != null) GameManager.Instance.rondaActual.OnValueChanged -= ActualizarTextoRonda;
     }
 }

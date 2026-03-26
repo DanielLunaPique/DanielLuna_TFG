@@ -8,7 +8,7 @@ public class SistemaPuntosFPS : NetworkBehaviour
     public NetworkVariable<int> puntos = new NetworkVariable<int>(
         50000,
         NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
+        NetworkVariableWritePermission.Server
     );
 
     public event Action<int> OnPuntosCambiados;
@@ -34,14 +34,30 @@ public class SistemaPuntosFPS : NetworkBehaviour
 
     public bool IntentarComprar(int coste)
     {
-        if (!IsOwner) return false;
+        // 1. Chivato inicial: ¿Quién ejecuta esto y cuánto dinero ve?
+        Debug.Log($"[BANCO] Intentando comprar algo de {coste} pts. Dinero actual en cuenta: {puntos.Value}. ¿Se ejecuta en el Servidor?: {IsServer}");
 
-        if(puntos.Value >= coste)
+        // 2. Comprobamos si tiene suficiente (OJO: tiene que ser >=, no solo >)
+        if (puntos.Value >= coste)
         {
-            puntos.Value -= coste;
+            // Solo el servidor tiene permiso para restar el dinero real
+            if (IsServer)
+            {
+                puntos.Value -= coste;
+                Debug.Log($"[BANCO] Compra APROBADA. Dinero restante: {puntos.Value}");
+            }
+            else
+            {
+                Debug.LogWarning("[BANCO] Cuidado: Un cliente ha intentado ejecutar la resta de dinero localmente.");
+            }
+
             return true;
         }
-
-        return false;
+        else
+        {
+            // 3. Chivato de denegación con matemáticas claras
+            Debug.LogWarning($"[BANCO] Compra DENEGADA. Faltan puntos. Tengo: {puntos.Value} | Cuesta: {coste}");
+            return false;
+        }
     }
 }
