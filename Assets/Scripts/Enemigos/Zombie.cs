@@ -15,9 +15,15 @@ public class Zombie : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        NetworkVariable<int> rondaActual = GameManager.Instance.rondaActual;
+        // Si tienes más código aquí arriba, déjalo.
 
-        salud.Value = salud.Value * rondaActual.Value;
+        // Envolvemos la asignación de vida para que los clientes no la toquen
+        if (IsServer)
+        {
+            NetworkVariable<int> rondaActual = GameManager.Instance.rondaActual;
+
+            salud.Value = salud.Value * rondaActual.Value;
+        }
     }
 
     [ServerRpc(RequireOwnership = false)]

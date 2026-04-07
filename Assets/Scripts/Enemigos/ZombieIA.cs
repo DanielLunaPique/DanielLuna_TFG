@@ -13,21 +13,29 @@ public class ZombieIA : NetworkBehaviour
     public float distanciaIman = 2.5f;
 
     [Header("Velocidad y Rondas")]
-    public float velocidadBaseInicial = 1.5f; // Velocidad en ronda 1 (Caminando lento)
-    public float incrementoVelocidadRonda = 0.5f; // Cuánto sube la velocidad por cada ronda
-    public float velocidadMaxima = 6.0f; // El tope máximo para que no sea injugable
-    public float multiplicadorUltimoZombie = 1.5f; // Si es el último, correrá un 50% más rápido
+    public float velocidadBaseInicial = 1.5f;
+    public float incrementoVelocidadRonda = 0.5f;
+    public float velocidadMaxima = 6.0f;
+    public float multiplicadorUltimoZombie = 1.5f;
+
+    [Header("Combate")]
+    public float distanciaAtaque = 1.6f; // Distancia para empezar a pegar
+    public float tiempoEntreAtaques = 1.5f; // Segundos entre manotazos
+    private bool estaAtacando = false;
+    private float proximoAtaque = 0f;
 
     private NavMeshAgent agente;
     private Transform objetivoActual;
     private bool estaSpawneando = true;
 
-    // Guardamos la velocidad que le toca en esta ronda
     private float velocidadCalculadaRonda;
 
     [Header("Animaciones")]
     public Animator animator;
     private Vector3 ultimaPosicion;
+
+    // Hash del trigger de ataque para optimizar
+    private readonly int triggerAtaqueHash = Animator.StringToHash("Attack");
 
     private void Awake()
     {
@@ -42,47 +50,34 @@ public class ZombieIA : NetworkBehaviour
             return;
         }
 
-        // 1. Calculamos la velocidad en base a la ronda actual
         CalcularVelocidadPorRonda();
-
         StartCoroutine(RutinaNacimiento());
     }
 
     private void CalcularVelocidadPorRonda()
     {
         int rondaActual = 1;
-
-        // Protegemos por si el GameManager no está listo un milisegundo
         if (GameManager.Instance != null)
         {
             rondaActual = GameManager.Instance.rondaActual.Value;
         }
-
-        // Formula: Velocidad Base + (Ronda * Incremento). Limitado por la Velocidad Maxima.
         velocidadCalculadaRonda = Mathf.Min(velocidadBaseInicial + (rondaActual * incrementoVelocidadRonda), velocidadMaxima);
     }
 
     private IEnumerator RutinaNacimiento()
     {
         estaSpawneando = true;
-
-        // En lugar de pausar el agente, le quitamos la velocidad para que no patine
         agente.speed = 0f;
 
         if (animator != null)
         {
-            // 1. Cada zombie reproducirá la animación a una velocidad ligeramente distinta (entre 90% y 110%)
             animator.speed = Random.Range(0.9f, 1.1f);
-
-            // 2. Le decimos al Animator que empiece la animación actual en un punto aleatorio (de 0.0 a 1.0)
             animator.Play(0, -1, Random.Range(0f, 1f));
         }
 
         yield return new WaitForSeconds(tiempoDeNacimiento);
 
         estaSpawneando = false;
-
-        // Le devolvemos su velocidad normal de ronda
         agente.speed = velocidadCalculadaRonda;
 
         StartCoroutine(RutinaBuscarObjetivo());
@@ -93,7 +88,7 @@ public class ZombieIA : NetworkBehaviour
         while (true)
         {
             EncontrarJugadorMasCercano();
-            ComprobarSiEsElUltimo(); // Verificamos si tiene que correr más
+            ComprobarSiEsElUltimo();
 
             yield return new WaitForSeconds(tiempoEntreBusquedas);
         }
@@ -101,18 +96,14 @@ public class ZombieIA : NetworkBehaviour
 
     private void ComprobarSiEsElUltimo()
     {
-        if (GameManager.Instance == null) return;
+        if (GameManager.Instance == null || estaAtacando) return;
 
-        // OJO AQUÍ: Tienes que cambiar "zombiesVivos" por el nombre exacto de la variable 
-        // que uses en tu GameManager para contar cuántos zombies quedan vivos en el mapa.
         if (GameManager.Instance.zombiesVivos.Value == 1)
         {
-            // Es el último: mete el turbo (ignorando la velocidad máxima si hace falta)
             agente.speed = velocidadCalculadaRonda * multiplicadorUltimoZombie;
         }
         else
         {
-            // Hay más zombies: velocidad normal de ronda
             agente.speed = velocidadCalculadaRonda;
         }
     }
@@ -146,35 +137,75 @@ public class ZombieIA : NetworkBehaviour
 
     private void Update()
     {
-        // 1. MOVIMIENTO (SOLO SERVIDOR)
-        if (IsServer && !estaSpawneando && objetivoActual != null)
+        GestionarAnimaciones();
+
+        if (!IsServer || estaSpawneando || objetivoActual == null) return;
+
+        // 2. LÓGICA DE ATAQUE (Solo Servidor)
+        float distanciaAlJugador = Vector3.Distance(transform.position, objetivoActual.position);
+
+        if (distanciaAlJugador <= distanciaAtaque && !estaAtacando && Time.time >= proximoAtaque)
+        {
+            StartCoroutine(SecuenciaAtaque());
+        }
+
+        // 3. MOVIMIENTO (Solo Servidor, si no está atacando)
+        if (!estaAtacando)
         {
             agente.SetDestination(objetivoActual.position);
         }
+    }
 
-        // 2. ANIMACIONES (SERVIDOR Y CLIENTES)
+    private IEnumerator SecuenciaAtaque()
+    {
+        estaAtacando = true;
+        proximoAtaque = Time.time + tiempoEntreAtaques;
+
+        // Frenamos al zombie en seco para que no patine mientras pega
+        agente.isStopped = true;
+        agente.velocity = Vector3.zero;
+
+        AtacarClientRpc();
+
+        // Esperamos a que la animación de ataque progrese. 
+        // Ajusta este tiempo según lo que dure tu clip de ataque.
+        yield return new WaitForSeconds(2.5f);
+
+        if (agente != null && agente.enabled)
+        {
+            agente.isStopped = false;
+        }
+
+        estaAtacando = false;
+    }
+
+    [ClientRpc]
+    private void AtacarClientRpc()
+    {
         if (animator != null)
         {
-            float velocidadReal = 0f;
-
-            if (IsServer)
-            {
-                velocidadReal = agente.velocity.magnitude;
-            }
-            else
-            {
-                // Calculamos la velocidad bruta
-                float velocidadBruta = (transform.position - ultimaPosicion).magnitude / Time.deltaTime;
-
-                float velocidadAnterior = animator.GetFloat("Speed");
-                velocidadReal = Mathf.Lerp(velocidadAnterior, velocidadBruta, Time.deltaTime * 10f);
-
-                ultimaPosicion = transform.position;
-            }
-
-
-            // El '0.25f' es el tiempo de amortiguación. Ignorará frenazos que duren menos que eso.
-            animator.SetFloat("Speed", velocidadReal, 1f, Time.deltaTime);
+            animator.SetTrigger(triggerAtaqueHash);
         }
+    }
+
+    private void GestionarAnimaciones()
+    {
+        if (animator == null) return;
+
+        float velocidadReal = 0f;
+
+        if (IsServer)
+        {
+            velocidadReal = agente.velocity.magnitude;
+        }
+        else
+        {
+            float velocidadBruta = (transform.position - ultimaPosicion).magnitude / Time.deltaTime;
+            float velocidadAnterior = animator.GetFloat("Speed");
+            velocidadReal = Mathf.Lerp(velocidadAnterior, velocidadBruta, Time.deltaTime * 10f);
+            ultimaPosicion = transform.position;
+        }
+
+        animator.SetFloat("Speed", velocidadReal, 0.25f, Time.deltaTime);
     }
 }

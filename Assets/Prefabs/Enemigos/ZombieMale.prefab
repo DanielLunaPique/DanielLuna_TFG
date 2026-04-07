@@ -106,6 +106,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8460689115924582798}
+  - component: {fileID: 7879135250209845570}
+  - component: {fileID: 3939043438826204604}
   m_Layer: 0
   m_Name: hand_r
   m_TagString: Untagged
@@ -133,6 +135,42 @@ Transform:
   - {fileID: 624010464668653114}
   m_Father: {fileID: 6326432211628630231}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7879135250209845570
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122968445256286117}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f86186f1e936614f8bf017f1c1a4750, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  hitboxMano: {fileID: 3939043438826204604}
+  "da\xF1oAtaque": 20
+  zombiePrincipal: {fileID: 4157563630932618115}
+--- !u!135 &3939043438826204604
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122968445256286117}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.85
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &293113326997538561
 GameObject:
   m_ObjectHideFlags: 0
@@ -593,6 +631,7 @@ GameObject:
   - component: {fileID: 3783022840605304141}
   - component: {fileID: 550433736511003551}
   - component: {fileID: 8672726109029409186}
+  - component: {fileID: 6206420870468033203}
   - component: {fileID: 1792353499460515557}
   - component: {fileID: 4157563630932618115}
   - component: {fileID: 6748885056382090493}
@@ -667,6 +706,19 @@ CapsuleCollider:
   m_Height: 1.8818752
   m_Direction: 1
   m_Center: {x: 0, y: 0.8647117, z: 0}
+--- !u!114 &6206420870468033203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1576185647143720901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca0e8a3c89d2d8146a25e36b047988e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  hitboxMano: {fileID: 3939043438826204604}
 --- !u!114 &1792353499460515557
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -679,7 +731,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 805163537
+  GlobalObjectIdHash: 40394047
   InScenePlacedSourceGlobalObjectIdHash: 40394047
   DeferredDespawnTick: 0
   Ownership: 1
@@ -752,6 +804,8 @@ MonoBehaviour:
   incrementoVelocidadRonda: 0.5
   velocidadMaxima: 6
   multiplicadorUltimoZombie: 1.5
+  distanciaAtaque: 1.6
+  tiempoEntreAtaques: 1.5
   animator: {fileID: 550433736511003551}
 --- !u!114 &241423686622289490
 MonoBehaviour:

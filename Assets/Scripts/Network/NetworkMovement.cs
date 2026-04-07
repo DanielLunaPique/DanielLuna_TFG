@@ -113,6 +113,8 @@ public class NetworkMovement : NetworkBehaviour
             MoverJugador();           // 4. Movemos la cápsula
             LogicaPostura();          // 5. Agachamos/Tumbamos el cuerpo
             AnimarJugadores();        // 6. Lanzamos las animaciones
+
+            if (camaraPivot != null) inclinacionRed.Value = camaraPivot.localEulerAngles.x;
         }
         else
         {
