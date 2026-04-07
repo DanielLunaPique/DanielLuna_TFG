@@ -89,55 +89,75 @@ public class SistemaDisparoFPS : MonoBehaviour
     {
         if (arma.balasActuales <= 0)
         {
-            // Aquí en el futuro pondremos el sonido de *Click* de cargador vacío
             return;
         }
 
-        // Restamos bala y aplicamos cadencia
         arma.balasActuales--;
         tiempoProximoDisparo = Time.time + stats.cadenciaDisparo;
 
-
-        // 1. Calculamos la dispersión total
         float dispersionTotal = (arma.dispersionBase * controladorFPS.multiplicadorDispersion) + controladorFPS.penalizacionDisparo;
-
-        // 2. Dirección base de la cámara
         Vector3 direccionBase = camaraPrincipal.transform.forward;
-
-        // 3. Le sumamos un vector aleatorio dentro de una esfera, multiplicado por la dispersión
         Vector3 direccionConDispersion = direccionBase + (Random.insideUnitSphere * dispersionTotal);
 
-        // 4. Creamos el Raycast con la nueva dirección torcida
         Ray rayo = new Ray(camaraPrincipal.transform.position, direccionConDispersion.normalized);
-        RaycastHit impacto;
 
-        // Lanzamos el rayo. El símbolo ~ significa "Invierte la máscara" (Choca con todo MENOS con esta capa)
-        // Lanzamos el rayo
-        if (Physics.Raycast(rayo, out impacto, distanciaDisparo, ~capaIgnorar))
+        RaycastHit[] impactos = Physics.RaycastAll(rayo, distanciaDisparo, ~capaIgnorar);
+
+        // Si hemos chocado con al menos una cosa...
+        if (impactos.Length > 0)
         {
-            Zombie enemigo = impacto.collider.GetComponent<Zombie>();
+            // 1. RaycastAll devuelve las cosas desordenadas. Tenemos que ordenarlas por distancia al jugador.
+            System.Array.Sort(impactos, (x, y) => x.distance.CompareTo(y.distance));
 
-            if (enemigo != null)
+            int zombiesAtravesados = 0;
+            int maxZombiesAtravesables = 6; // El primero (100%) + 5 detrás (75%)
+            ulong miDNI = Unity.Netcode.NetworkManager.Singleton.LocalClientId;
+            bool hemosDadoAUnZombie = false;
+
+            // 2. Recorremos todo lo que ha atravesado la bala, del más cercano al más lejano
+            foreach (RaycastHit impacto in impactos)
             {
-                // Conseguimos nuestro "DNI" de jugador (nuestro ID en el servidor)
-                ulong miDNI = Unity.Netcode.NetworkManager.Singleton.LocalClientId;
-                enemigo.TakeDamageServerRpc(stats.daño, miDNI);
+                //Ahora buscamos la ParteDelCuerpo, no al Zombie entero
+                ParteDelCuerpo hitbox = impacto.collider.GetComponent<ParteDelCuerpo>();
 
-                HitmarkerFPS hitmarker = GetComponentInChildren<HitmarkerFPS>();
-                if (hitmarker != null) hitmarker.MostrarHitmarker();
+                if (hitbox != null)
+                {
+                    if (zombiesAtravesados < maxZombiesAtravesables)
+                    {
+                        // Si es el primero, daño 100%. Si es el segundo o más, daño 75%.
+                        float porcentajePenetracion = (zombiesAtravesados == 0) ? 1.0f : 0.75f;
+                        int dañoCalculado = Mathf.RoundToInt(stats.daño * porcentajePenetracion);
+
+                        // Le pasamos el daño a la Hitbox, y ella se encarga de multiplicarlo si es la cabeza o el pie
+                        hitbox.RecibirDisparo(dañoCalculado, miDNI);
+                        hemosDadoAUnZombie = true;
+
+                        zombiesAtravesados++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    // Si NO es un zombie (es una pared, suelo, etc.)
+                    if (prefabAgujeroBala != null)
+                    {
+                        Vector3 posicionAgujero = impacto.point + (impacto.normal * 0.001f);
+                        Quaternion rotacionAgujero = Quaternion.LookRotation(-impacto.normal);
+                        Instantiate(prefabAgujeroBala, posicionAgujero, rotacionAgujero);
+                    }
+
+                    break;
+                }
             }
 
-            // 1. INSTANCIAR AGUJERO DE BALA
-            else if (prefabAgujeroBala != null)
+            // Si al final del rayo le hemos dado a al menos un zombie, mostramos la cruceta de hit.
+            if (hemosDadoAUnZombie)
             {
-                // Un truco profesional: Separamos el agujero un milímetro de la pared (normal * 0.001f) 
-                // para que la textura de la pared y la del agujero no se peleen visualmente (Z-Fighting)
-                Vector3 posicionAgujero = impacto.point + (impacto.normal * 0.001f);
-
-                // Rotamos el agujero para que se pegue plano contra la pared, suelo o techo
-                Quaternion rotacionAgujero = Quaternion.LookRotation(-impacto.normal);
-
-                Instantiate(prefabAgujeroBala, posicionAgujero, rotacionAgujero);
+                HitmarkerFPS hitmarker = GetComponentInChildren<HitmarkerFPS>();
+                if (hitmarker != null) hitmarker.MostrarHitmarker();
             }
         }
 
@@ -146,7 +166,6 @@ public class SistemaDisparoFPS : MonoBehaviour
             controladorFPS.AplicarRetroceso();
         }
 
-        // 3. APLICAMOS EL RETROCESO ESTILO CoD A LA CÁMARA
         if (controladorCamara != null)
         {
             controladorCamara.RecibirRetroceso(

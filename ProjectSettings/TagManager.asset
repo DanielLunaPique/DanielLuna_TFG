@@ -18,8 +18,8 @@ TagManager:
   - WorldModel
   - Player
   - Suelo
-  - 
-  - 
+  - ZombieHitbox
+  - ZombieFisico
   - 
   - 
   - 

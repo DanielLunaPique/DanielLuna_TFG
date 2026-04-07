@@ -1,13 +1,24 @@
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections; // Necesario para las corrutinas
 
 public class Zombie : NetworkBehaviour
 {
     [Header("Estadisticas")]
-    public NetworkVariable<int> salud = new NetworkVariable<int>(100);
+    public NetworkVariable<int> salud = new NetworkVariable<int>(18);
 
     public int puntosPorImpacto = 10;
     public int puntosPorMuerte = 70;
+
+    [Header("Animaciones")]
+    public Animator animator;
+
+    public override void OnNetworkSpawn()
+    {
+        NetworkVariable<int> rondaActual = GameManager.Instance.rondaActual;
+
+        salud.Value = salud.Value * rondaActual.Value;
+    }
 
     [ServerRpc(RequireOwnership = false)]
     public void TakeDamageServerRpc(int damage, ulong idAtacante)
@@ -15,13 +26,10 @@ public class Zombie : NetworkBehaviour
         if (salud.Value <= 0) return;
 
         salud.Value -= damage;
-
-        // 1. El Servidor suma el dinero REAL. La UI del cliente se actualizará sola.
         IngresarDineroEnBancoServidor(idAtacante, puntosPorImpacto);
 
         if (salud.Value <= 0)
         {
-            // 2. Ingresamos el dinero de la muerte
             IngresarDineroEnBancoServidor(idAtacante, puntosPorMuerte);
 
             if (GameManager.Instance != null)
@@ -29,25 +37,61 @@ public class Zombie : NetworkBehaviour
                 GameManager.Instance.ZombieEliminado();
             }
 
-            // 3. Destruimos al zombie
-            NetworkObject netObj = GetComponent<NetworkObject>();
-            if (netObj != null && netObj.IsSpawned)
+            UnityEngine.AI.NavMeshAgent agente = GetComponent<UnityEngine.AI.NavMeshAgent>();
+            if (agente != null)
             {
-                netObj.Despawn();
+                agente.isStopped = true;
+                agente.velocity = Vector3.zero;
+                agente.speed = 0f;
+                agente.enabled = false; // Apagamos el agente del todo para que no estorbe
             }
+
+            // APAGAMOS EL COLLIDER EN EL SERVIDOR para que los demás zombies no frenen al chocar con él
+            Collider col = GetComponent<Collider>();
+            if (col != null) col.enabled = false;
+
+            // 1. Avisamos a todas las pantallas de que el zombie ha muerto
+            MorirClientRpc();
+
+            // 2. El servidor espera a que termine la animación antes de borrarlo
+            StartCoroutine(EsperarYDespawnear());
         }
     }
 
-    // Función segura que solo ejecuta el Servidor para modificar la NetworkVariable
+    // El servidor avisa a todos los jugadores
+    [ClientRpc]
+    private void MorirClientRpc()
+    {
+        // Disparamos la animación de muerte
+        if (animator != null) animator.SetTrigger("Death");
+
+        // Desactivamos la cápsula de colisión para que los jugadores puedan pisar el cadáver
+        Collider col = GetComponent<Collider>();
+        if (col != null) col.enabled = false;
+
+        // Desactivamos el script de IA para que deje de mirarnos o intentar moverse
+        ZombieIA ia = GetComponent<ZombieIA>();
+        if (ia != null) ia.enabled = false;
+    }
+
+    private IEnumerator EsperarYDespawnear()
+    {
+        // AJUSTA ESTE NÚMERO: Es el tiempo en segundos que dura tu animación de muerte
+        yield return new WaitForSeconds(3f);
+
+        NetworkObject netObj = GetComponent<NetworkObject>();
+        if (netObj != null && netObj.IsSpawned)
+        {
+            netObj.Despawn();
+        }
+    }
+
     private void IngresarDineroEnBancoServidor(ulong idJugador, int cantidad)
     {
         if (NetworkManager.Singleton.ConnectedClients.TryGetValue(idJugador, out var cliente))
         {
             var bolsillo = cliente.PlayerObject.GetComponentInChildren<SistemaPuntosFPS>();
-            if (bolsillo != null)
-            {
-                bolsillo.puntos.Value += cantidad; // ESTO ES EL DINERO REAL
-            }
+            if (bolsillo != null) bolsillo.puntos.Value += cantidad;
         }
     }
 }

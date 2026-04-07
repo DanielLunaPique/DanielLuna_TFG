@@ -27,7 +27,7 @@ public class GameManager : NetworkBehaviour
     [Header("Ajustes")]
     public float tiempoPreparacion = 10f;
     public int spawnsSimultaneos = 5;
-    public float tiempoEntreOleadas = 2f;
+    public float tiempoEntreOleadas = 4f;
 
     [Header("Prefab Zombie")]
     public GameObject prefabZombie;

@@ -208,7 +208,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: Antitank_hedgehog (17)
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2434017783909423464, guid: 6516d15f3b1c98d46892ede8e4d838b9, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -282,11 +283,41 @@ PrefabInstance:
       propertyPath: m_Name
       value: Antitank_hedgehog (15)
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2434017783909423464, guid: 6516d15f3b1c98d46892ede8e4d838b9, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8569481162310484168, guid: 6516d15f3b1c98d46892ede8e4d838b9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5131206853456367}
   m_SourcePrefab: {fileID: 100100000, guid: 6516d15f3b1c98d46892ede8e4d838b9, type: 3}
+--- !u!1 &3802537445039866213 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8569481162310484168, guid: 6516d15f3b1c98d46892ede8e4d838b9, type: 3}
+  m_PrefabInstance: {fileID: 4767546318901084589}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &5131206853456367
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3802537445039866213}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.8344259, y: 1.6361694, z: 8.212179}
+  m_Center: {x: -0.03212031, y: 0.77261007, z: 3.2832744}
 --- !u!4 &6326411453046728419 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1576919218824292174, guid: 6516d15f3b1c98d46892ede8e4d838b9, type: 3}
@@ -356,7 +387,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: Antitank_hedgehog (18)
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2434017783909423464, guid: 6516d15f3b1c98d46892ede8e4d838b9, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -430,7 +462,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: Antitank_hedgehog (19)
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2434017783909423464, guid: 6516d15f3b1c98d46892ede8e4d838b9, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -608,7 +641,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: Antitank_hedgehog (16)
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2434017783909423464, guid: 6516d15f3b1c98d46892ede8e4d838b9, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

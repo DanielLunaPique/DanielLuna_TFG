@@ -164,10 +164,8 @@ public class NetworkMovement : NetworkBehaviour
         // Miramos si la estamina nos da permiso
         bool tieneEstamina = (sistemaEstamina == null || sistemaEstamina.puedeCorrer);
 
-        bool estaRecargando = controladorArmas != null && controladorArmas.estaRecargando;
-
         // Calculamos la verdad absoluta
-        esprintandoRealmente = quiereCorrer && inputZ > 0 && !inputApuntando && !estaAgachado && !estaTumbado && tieneEstamina && !estaRecargando;
+        esprintandoRealmente = quiereCorrer && inputZ > 0 && !inputApuntando && !estaAgachado && !estaTumbado && tieneEstamina;
 
         if (sistemaEstamina != null)
         {
@@ -196,7 +194,7 @@ public class NetworkMovement : NetworkBehaviour
 
         if (estaRecargando && !estaAgachado && !estaTumbado)
         {
-            velocidadActual = velocidadCaminar * 0.7f; 
+            velocidadActual = velocidadCaminar * 0.7f;
         }
 
         Vector3 inputDir = new Vector3(inputX, 0f, inputZ);

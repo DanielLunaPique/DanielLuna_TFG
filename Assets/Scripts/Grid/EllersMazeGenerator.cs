@@ -56,6 +56,9 @@ public class EllersMazeGenerator : MonoBehaviour
     [SerializeField] GameObject puntoSpawnPrefab;  // El prefab que tiene el script PuntoSpawnZombie
     [SerializeField] int maxZombies = 6;
     [SerializeField] float minZombieDistance = 3.0f;
+    
+    [Header("Conexion con el mapa")]
+    public PuertaDesbloqueable puertaDesbloqueable;
 
     private CellData[,] logicalMap;
 
@@ -516,6 +519,7 @@ public class EllersMazeGenerator : MonoBehaviour
 
         // 1. Instanciar el contenedor principal de la zona
         GameObject zonaObj = Instantiate(zonaZombiesPrefab, Vector3.zero, Quaternion.identity);
+        zonaObj.SetActive(true);
         ZonaZombies zonaScript = zonaObj.GetComponent<ZonaZombies>();
 
         // 2. Barajar los candidatos sobrantes
@@ -570,6 +574,12 @@ public class EllersMazeGenerator : MonoBehaviour
         if (zonaScript != null)
         {
             zonaScript.AutocompletarSpawns();
+        }
+
+        if (puertaDesbloqueable != null)
+        {
+            // Le asignamos la zona a la puerta automáticamente por código
+            puertaDesbloqueable.zonasADesbloquear = new ZonaZombies[] { zonaScript };
         }
     }
 

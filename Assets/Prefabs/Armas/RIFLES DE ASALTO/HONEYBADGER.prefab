@@ -1026,9 +1026,9 @@ MonoBehaviour:
   rotacionSprint: {x: 7, y: -10, z: 10}
   balasActuales: 0
   balasReserva: 0
-  retrocesoZ: -0.7
+  retrocesoZ: -1
   retrocesoRotacionX: -2
-  retrocesoRotacionYAleatoria: 0.1
+  retrocesoRotacionYAleatoria: 0.3
   dispersionBase: 0.05
   recoilCamaraArriba: 1.5
   recoilCamaraLado: 0.5

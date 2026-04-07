@@ -76,6 +76,20 @@ public class PuertaDesbloqueable : NetworkBehaviour
         {
             estaAbierta.Value = true;
 
+            // ==========================================
+            // LO QUE SE ME OLVIDÓ: ¡ACTIVAR LAS ZONAS!
+            // ==========================================
+            foreach (ZonaZombies zona in zonasADesbloquear)
+            {
+                if (zona != null)
+                {
+                    // AQUÍ TIENES QUE PONER TU VARIABLE O FUNCIÓN REAL
+                    // Dependiendo de cómo hiciste el script ZonaZombies, será algo así:
+                    zona.estaActiva = true;
+                    // o quizás: zona.ActivarZona();
+                }
+            }
+
             // El Servidor destruye la puerta. Esto disparará OnNetworkDespawn en todos lados.
             NetworkObject netObj = GetComponent<NetworkObject>();
             if (netObj != null && netObj.IsSpawned)
