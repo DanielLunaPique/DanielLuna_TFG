@@ -25,6 +25,9 @@ public class SistemaDisparoFPS : MonoBehaviour
     [Tooltip("Arrastra aquí tu Main Camera que tiene el nuevo script")]
     public ControladorCamaraFPS controladorCamara;
 
+    [Tooltip("Arrastra aquí el objeto Hitmarker de tu Interfaz")]
+    public HitmarkerFPS hitmarkerUI;
+
     void Update()
     {
         // Si no tenemos arma, no hacemos nada
@@ -156,8 +159,8 @@ public class SistemaDisparoFPS : MonoBehaviour
             // Si al final del rayo le hemos dado a al menos un zombie, mostramos la cruceta de hit.
             if (hemosDadoAUnZombie)
             {
-                HitmarkerFPS hitmarker = GetComponentInChildren<HitmarkerFPS>();
-                if (hitmarker != null) hitmarker.MostrarHitmarker();
+                // En vez de buscarlo, usamos directamente el que le hemos asignado en el Inspector
+                if (hitmarkerUI != null) hitmarkerUI.MostrarHitmarker();
             }
         }
 

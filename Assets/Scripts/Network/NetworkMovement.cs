@@ -45,6 +45,10 @@ public class NetworkMovement : NetworkBehaviour
     public float alturaAgachadoFisico = 1f;
     public float alturaTumbadoFisico = 0.5f;
 
+    [Header("Corrección de Animación TPS")]
+    public Transform huesoColumna; // Aquí arrastrarás la espina dorsal de tu modelo
+    public Vector3 compensacionApuntado = new Vector3(0f, 15f, 0f); // Grados a corregir
+
     private float alturaCamaraNormal;
     public float alturaCamaraAgachado = 0.5f;
     public float alturaCamaraTumbado = -0.2f;
@@ -78,14 +82,23 @@ public class NetworkMovement : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        // 1. LA CURA DEL FANTASMA: Buscamos la cabeza para TODOS los ordenadores
+        if (camaraPivot == null)
+        {
+            // Buscamos a tu hijo llamado "Camera Root" (como sale en tu captura)
+            Transform root = transform.Find("Camera Root");
+
+            // Si lo encuentra se lo asigna. Si no, usa el cuerpo entero como plan B.
+            camaraPivot = root != null ? root : transform;
+        }
+
+        // 2. Lógica exclusiva del dueño de este jugador
         if (IsOwner)
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
-            if (camaraPivot == null)
-                camaraPivot = GetComponentInChildren<Camera>()?.transform;
-
+            // Ahora es seguro leer la altura porque sabemos que camaraPivot existe sí o sí
             alturaCamaraNormal = camaraPivot.localPosition.y;
 
             foreach (SkinnedMeshRenderer malla in mallasCuerpoTerceraPersona)
@@ -95,6 +108,7 @@ public class NetworkMovement : NetworkBehaviour
         }
         else
         {
+            // Lógica para los clones de tus amigos (se apagan sus cámaras)
             if (camaraPrincipal != null) camaraPrincipal.SetActive(false);
             if (camaraArma != null) camaraArma.SetActive(false);
             if (objetoBrazosFPS != null) objetoBrazosFPS.SetActive(false);
@@ -121,6 +135,21 @@ public class NetworkMovement : NetworkBehaviour
             if (camaraPivot != null)
             {
                 camaraPivot.localRotation = Quaternion.Euler(inclinacionRed.Value, 0f, 0f);
+            }
+        }
+    }
+
+    private void LateUpdate()
+    {
+        // LateUpdate se ejecuta DESPUÉS de que el Animator coloque los huesos.
+        // Aquí forzamos una corrección manual.
+        if (huesoColumna != null && animatorCuerpo != null)
+        {
+            // Si el Animator dice que este jugador está apuntando...
+            if (animatorCuerpo.GetBool("IsAiming"))
+            {
+                // Le giramos la cintura los grados que necesitemos
+                huesoColumna.Rotate(compensacionApuntado, Space.Self);
             }
         }
     }

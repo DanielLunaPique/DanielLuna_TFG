@@ -16,7 +16,6 @@ public class ParteDelCuerpo : MonoBehaviour
         // Calculamos el daño final redondeando al número entero más cercano
         int dañoFinal = Mathf.RoundToInt(dañoBase * multiplicadorDaño);
 
-        Debug.Log($"<color=red>🎯 IMPACTO EN:</color> <b>{gameObject.name}</b> | Daño Base: {dañoBase} | Multiplicador: x{multiplicadorDaño} | <color=orange>Daño Final: {dañoFinal}</color>");
         // Le mandamos el daño ya multiplicado al script principal del zombie
         zombiePrincipal.TakeDamageServerRpc(dañoFinal, idAtacante);
     }

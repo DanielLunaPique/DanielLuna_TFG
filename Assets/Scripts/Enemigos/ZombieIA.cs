@@ -1,8 +1,7 @@
-using GLTFast.Schema;
-using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
 
 [RequireComponent(typeof(NavMeshAgent))]
 public class ZombieIA : NetworkBehaviour
@@ -19,22 +18,22 @@ public class ZombieIA : NetworkBehaviour
     public float multiplicadorUltimoZombie = 1.5f;
 
     [Header("Combate")]
-    public float distanciaAtaque = 1.6f; // Distancia para empezar a pegar
-    public float tiempoEntreAtaques = 1.5f; // Segundos entre manotazos
+    public float distanciaAtaque = 1.6f;
+    public float tiempoEntreAtaques = 1.5f;
     private bool estaAtacando = false;
     private float proximoAtaque = 0f;
 
     private NavMeshAgent agente;
     private Transform objetivoActual;
     private bool estaSpawneando = true;
-
     private float velocidadCalculadaRonda;
 
     [Header("Animaciones")]
     public Animator animator;
-    private Vector3 ultimaPosicion;
 
-    // Hash del trigger de ataque para optimizar
+    // --- CAMBIO CLAVE: Variable de red para sincronizar la velocidad ---
+    private NetworkVariable<float> velocidadRed = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
     private readonly int triggerAtaqueHash = Animator.StringToHash("Attack");
 
     private void Awake()
@@ -57,10 +56,7 @@ public class ZombieIA : NetworkBehaviour
     private void CalcularVelocidadPorRonda()
     {
         int rondaActual = 1;
-        if (GameManager.Instance != null)
-        {
-            rondaActual = GameManager.Instance.rondaActual.Value;
-        }
+        if (GameManager.Instance != null) rondaActual = GameManager.Instance.rondaActual.Value;
         velocidadCalculadaRonda = Mathf.Min(velocidadBaseInicial + (rondaActual * incrementoVelocidadRonda), velocidadMaxima);
     }
 
@@ -68,18 +64,14 @@ public class ZombieIA : NetworkBehaviour
     {
         estaSpawneando = true;
         agente.speed = 0f;
-
         if (animator != null)
         {
             animator.speed = Random.Range(0.9f, 1.1f);
             animator.Play(0, -1, Random.Range(0f, 1f));
         }
-
         yield return new WaitForSeconds(tiempoDeNacimiento);
-
         estaSpawneando = false;
         agente.speed = velocidadCalculadaRonda;
-
         StartCoroutine(RutinaBuscarObjetivo());
     }
 
@@ -89,7 +81,6 @@ public class ZombieIA : NetworkBehaviour
         {
             EncontrarJugadorMasCercano();
             ComprobarSiEsElUltimo();
-
             yield return new WaitForSeconds(tiempoEntreBusquedas);
         }
     }
@@ -97,15 +88,7 @@ public class ZombieIA : NetworkBehaviour
     private void ComprobarSiEsElUltimo()
     {
         if (GameManager.Instance == null || estaAtacando) return;
-
-        if (GameManager.Instance.zombiesVivos.Value == 1)
-        {
-            agente.speed = velocidadCalculadaRonda * multiplicadorUltimoZombie;
-        }
-        else
-        {
-            agente.speed = velocidadCalculadaRonda;
-        }
+        agente.speed = (GameManager.Instance.zombiesVivos.Value == 1) ? velocidadCalculadaRonda * multiplicadorUltimoZombie : velocidadCalculadaRonda;
     }
 
     private void EncontrarJugadorMasCercano()
@@ -117,12 +100,11 @@ public class ZombieIA : NetworkBehaviour
         {
             if (cliente.PlayerObject != null)
             {
-                float distancia = Vector3.Distance(transform.position, cliente.PlayerObject.transform.position);
+                SaludJugador salud = cliente.PlayerObject.GetComponent<SaludJugador>();
+                if (salud == null || salud.estaMuerto) continue;
 
-                if (objetivoActual != null && cliente.PlayerObject.transform == objetivoActual)
-                {
-                    distancia -= distanciaIman;
-                }
+                float distancia = Vector3.Distance(transform.position, cliente.PlayerObject.transform.position);
+                if (objetivoActual != null && cliente.PlayerObject.transform == objetivoActual) distancia -= distanciaIman;
 
                 if (distancia < distanciaMinima)
                 {
@@ -131,81 +113,58 @@ public class ZombieIA : NetworkBehaviour
                 }
             }
         }
-
         objetivoActual = mejorObjetivo;
     }
 
     private void Update()
     {
+        // El cliente solo lee la variable, el servidor la escribe
+        if (IsServer)
+        {
+            if (estaSpawneando || objetivoActual == null || estaAtacando)
+                velocidadRed.Value = 0f;
+            else
+                velocidadRed.Value = agente.velocity.magnitude;
+
+            // Lógica de ataque
+            if (objetivoActual != null)
+            {
+                float distanciaAlJugador = Vector3.Distance(transform.position, objetivoActual.position);
+                if (distanciaAlJugador <= distanciaAtaque && !estaAtacando && Time.time >= proximoAtaque)
+                    StartCoroutine(SecuenciaAtaque());
+
+                if (!estaAtacando) agente.SetDestination(objetivoActual.position);
+            }
+        }
+
         GestionarAnimaciones();
-
-        if (!IsServer || estaSpawneando || objetivoActual == null) return;
-
-        // 2. LÓGICA DE ATAQUE (Solo Servidor)
-        float distanciaAlJugador = Vector3.Distance(transform.position, objetivoActual.position);
-
-        if (distanciaAlJugador <= distanciaAtaque && !estaAtacando && Time.time >= proximoAtaque)
-        {
-            StartCoroutine(SecuenciaAtaque());
-        }
-
-        // 3. MOVIMIENTO (Solo Servidor, si no está atacando)
-        if (!estaAtacando)
-        {
-            agente.SetDestination(objetivoActual.position);
-        }
     }
 
     private IEnumerator SecuenciaAtaque()
     {
         estaAtacando = true;
         proximoAtaque = Time.time + tiempoEntreAtaques;
-
-        // Frenamos al zombie en seco para que no patine mientras pega
         agente.isStopped = true;
         agente.velocity = Vector3.zero;
 
         AtacarClientRpc();
 
-        // Esperamos a que la animación de ataque progrese. 
-        // Ajusta este tiempo según lo que dure tu clip de ataque.
         yield return new WaitForSeconds(2.5f);
-
-        if (agente != null && agente.enabled)
-        {
-            agente.isStopped = false;
-        }
-
+        if (agente != null && agente.enabled) agente.isStopped = false;
         estaAtacando = false;
     }
 
     [ClientRpc]
-    private void AtacarClientRpc()
-    {
-        if (animator != null)
-        {
-            animator.SetTrigger(triggerAtaqueHash);
-        }
-    }
+    private void AtacarClientRpc() => animator?.SetTrigger(triggerAtaqueHash);
 
     private void GestionarAnimaciones()
     {
         if (animator == null) return;
 
-        float velocidadReal = 0f;
+        // --- FIX DEFINITIVO: Usamos el valor sincronizado en lugar de calcular posiciones ---
+        float v = velocidadRed.Value;
+        if (v < 0.1f) v = 0f; // Evita el "micro-andado"
 
-        if (IsServer)
-        {
-            velocidadReal = agente.velocity.magnitude;
-        }
-        else
-        {
-            float velocidadBruta = (transform.position - ultimaPosicion).magnitude / Time.deltaTime;
-            float velocidadAnterior = animator.GetFloat("Speed");
-            velocidadReal = Mathf.Lerp(velocidadAnterior, velocidadBruta, Time.deltaTime * 10f);
-            ultimaPosicion = transform.position;
-        }
-
-        animator.SetFloat("Speed", velocidadReal, 0.25f, Time.deltaTime);
+        animator.SetFloat("Speed", v, 0.25f, Time.deltaTime);
     }
 }

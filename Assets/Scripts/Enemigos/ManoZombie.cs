@@ -28,7 +28,6 @@ public class ManoZombie : MonoBehaviour
             if (salud != null && !salud.estaMuerto)
             {
                 salud.RecibirDaño(dañoAtaque);
-                Debug.Log("<color=red>¡ZASCA! El zombie te ha dado un manotazo.</color>");
             }
 
             // Apagamos la mano instantáneamente para no hacerle daño 2 veces seguidas

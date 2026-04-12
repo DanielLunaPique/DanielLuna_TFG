@@ -6,7 +6,7 @@ public class SistemaPuntosFPS : NetworkBehaviour
 {
     [Header("Economia del jugador")]
     public NetworkVariable<int> puntos = new NetworkVariable<int>(
-        50000,
+        500,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
@@ -20,7 +20,6 @@ public class SistemaPuntosFPS : NetworkBehaviour
             if (IsOwner)
             {
                 OnPuntosCambiados?.Invoke(valorNuevo);
-                Debug.Log($"[Bolsillo] Puntos actualizados: {valorNuevo}");
             }
         };
     }
@@ -44,11 +43,11 @@ public class SistemaPuntosFPS : NetworkBehaviour
             if (IsServer)
             {
                 puntos.Value -= coste;
-                Debug.Log($"[BANCO] Compra APROBADA. Dinero restante: {puntos.Value}");
+                //Debug.Log($"[BANCO] Compra APROBADA. Dinero restante: {puntos.Value}");
             }
             else
             {
-                Debug.LogWarning("[BANCO] Cuidado: Un cliente ha intentado ejecutar la resta de dinero localmente.");
+                //Debug.LogWarning("[BANCO] Cuidado: Un cliente ha intentado ejecutar la resta de dinero localmente.");
             }
 
             return true;
@@ -56,7 +55,7 @@ public class SistemaPuntosFPS : NetworkBehaviour
         else
         {
             // 3. Chivato de denegación con matemáticas claras
-            Debug.LogWarning($"[BANCO] Compra DENEGADA. Faltan puntos. Tengo: {puntos.Value} | Cuesta: {coste}");
+            //Debug.LogWarning($"[BANCO] Compra DENEGADA. Faltan puntos. Tengo: {puntos.Value} | Cuesta: {coste}");
             return false;
         }
     }

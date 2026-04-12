@@ -1,0 +1,766 @@
+fileFormatVersion: 2
+guid: 0889dabc8d46eb34a8218f67bc60465f
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_0
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 806
+        width: 370
+        height: 179
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 753e312fa019fe242af07be6c87b6ed7
+      internalID: -1138056689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_2
+      rect:
+        serializedVersion: 2
+        x: 449
+        y: 833
+        width: 304
+        height: 132
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ea2335613decb014aa04e2af19a46933
+      internalID: 714787710
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_3
+      rect:
+        serializedVersion: 2
+        x: 783
+        y: 806
+        width: 263
+        height: 171
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8f2628e404776fb4e927650a58a3d815
+      internalID: 1480943019
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_4
+      rect:
+        serializedVersion: 2
+        x: 1068
+        y: 803
+        width: 204
+        height: 190
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 16d92638f82988341a80170b8b46abbd
+      internalID: -89636313
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_5
+      rect:
+        serializedVersion: 2
+        x: 1280
+        y: 593
+        width: 134
+        height: 199
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5676546f5a0866d4295381bb6feafaa0
+      internalID: -197796968
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_6
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 576
+        width: 215
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f0a63f392376aca4aa441fa7489709e6
+      internalID: -1736876369
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_7
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 612
+        width: 294
+        height: 164
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e99889b5a6a75fc4ba0a82b587a453a9
+      internalID: -1004080621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_8
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 596
+        width: 280
+        height: 169
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 23232b439d87ff94f89c60dda43a4f3d
+      internalID: 669703058
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_9
+      rect:
+        serializedVersion: 2
+        x: 996
+        y: 692
+        width: 4
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c9d28ba87bffb824eae9221a6f209b36
+      internalID: -1813585781
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_10
+      rect:
+        serializedVersion: 2
+        x: 1067
+        y: 610
+        width: 149
+        height: 161
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a6aae6fb3fc79ca4f9682973d5bff136
+      internalID: 988958983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_11
+      rect:
+        serializedVersion: 2
+        x: 996
+        y: 670
+        width: 4
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 24afb859bb8dafd4b85b43e7cd8a5676
+      internalID: -1873863694
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_12
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 649
+        width: 4
+        height: 4
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 37c71cecdc380934d90e76beb786b271
+      internalID: 130260472
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_13
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 361
+        width: 300
+        height: 161
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dbfecbc26caabff409cbb55c5b7e7f74
+      internalID: 1642523986
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_14
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 438
+        width: 281
+        height: 117
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d7c5e796ed522d64395408edf54ef9cf
+      internalID: -1384210697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_15
+      rect:
+        serializedVersion: 2
+        x: 684
+        y: 475
+        width: 6
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dcb6cc87844146e40b9d3ff0943bb0c3
+      internalID: 821176240
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_17
+      rect:
+        serializedVersion: 2
+        x: 737
+        y: 421
+        width: 406
+        height: 146
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5fd91593484d9aa47a80ce7736f0ca63
+      internalID: 1922272189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_18
+      rect:
+        serializedVersion: 2
+        x: 1234
+        y: 334
+        width: 209
+        height: 231
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 71f27915e6c588247bd1687843d9b829
+      internalID: -1911225206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_19
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 136
+        width: 86
+        height: 202
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9c87c547fb6837c45acb7312f8630783
+      internalID: 1697014516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_20
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 137
+        width: 93
+        height: 198
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2c0288a196dbee64d8f855802e418b1b
+      internalID: 1503393200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_21
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 132
+        width: 84
+        height: 203
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 55a07904d650924479236a498e99f52b
+      internalID: 1792810807
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_22
+      rect:
+        serializedVersion: 2
+        x: 412
+        y: 245
+        width: 260
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 02422c82e6b11974e97475bf0f560198
+      internalID: 289956920
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_23
+      rect:
+        serializedVersion: 2
+        x: 728
+        y: 236
+        width: 166
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e3062e2db44c78d4b8e1f543b84157cd
+      internalID: 507487249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_24
+      rect:
+        serializedVersion: 2
+        x: 935
+        y: 218
+        width: 208
+        height: 121
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a447525139b38124e9416dc5c62629c9
+      internalID: -997978933
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_25
+      rect:
+        serializedVersion: 2
+        x: 1167
+        y: 183
+        width: 151
+        height: 114
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 57784d10181e3bb499318ae969e9ed0b
+      internalID: -969187709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_26
+      rect:
+        serializedVersion: 2
+        x: 1336
+        y: 195
+        width: 187
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fb32971e0d54df34f9ffecc09244b9fa
+      internalID: 2146730129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_27
+      rect:
+        serializedVersion: 2
+        x: 444
+        y: 53
+        width: 324
+        height: 170
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 61cc533b136d27f408c2c12eea76e57c
+      internalID: -2050489815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_29
+      rect:
+        serializedVersion: 2
+        x: 829
+        y: 94
+        width: 246
+        height: 103
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f3e616a0c2f96a5439af28f864150692
+      internalID: 1304995142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Decoraacion Interfaz_30
+      rect:
+        serializedVersion: 2
+        x: 1167
+        y: 57
+        width: 268
+        height: 112
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 274392199e7a97846885f51e9539932a
+      internalID: -1744670956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5a30041ee425caf4384b38d636ec70e0
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      Decoraacion Interfaz_0: -1138056689
+      Decoraacion Interfaz_1: -1055204178
+      Decoraacion Interfaz_10: 988958983
+      Decoraacion Interfaz_11: -1873863694
+      Decoraacion Interfaz_12: 130260472
+      Decoraacion Interfaz_13: 1642523986
+      Decoraacion Interfaz_14: -1384210697
+      Decoraacion Interfaz_15: 821176240
+      Decoraacion Interfaz_16: -1489088457
+      Decoraacion Interfaz_17: 1922272189
+      Decoraacion Interfaz_18: -1911225206
+      Decoraacion Interfaz_19: 1697014516
+      Decoraacion Interfaz_2: 714787710
+      Decoraacion Interfaz_20: 1503393200
+      Decoraacion Interfaz_21: 1792810807
+      Decoraacion Interfaz_22: 289956920
+      Decoraacion Interfaz_23: 507487249
+      Decoraacion Interfaz_24: -997978933
+      Decoraacion Interfaz_25: -969187709
+      Decoraacion Interfaz_26: 2146730129
+      Decoraacion Interfaz_27: -2050489815
+      Decoraacion Interfaz_28: -917877168
+      Decoraacion Interfaz_29: 1304995142
+      Decoraacion Interfaz_3: 1480943019
+      Decoraacion Interfaz_30: -1744670956
+      Decoraacion Interfaz_4: -89636313
+      Decoraacion Interfaz_5: -197796968
+      Decoraacion Interfaz_6: -1736876369
+      Decoraacion Interfaz_7: -1004080621
+      Decoraacion Interfaz_8: 669703058
+      Decoraacion Interfaz_9: -1813585781
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

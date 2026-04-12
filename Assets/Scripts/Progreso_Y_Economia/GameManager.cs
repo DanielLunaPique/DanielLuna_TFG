@@ -178,4 +178,39 @@ public class GameManager : NetworkBehaviour
             StartCoroutine(IniciarSiguienteRonda());
         }
     }
+
+    // ==========================================
+    // SISTEMA DE MUERTE Y ESPECTADOR
+    // ==========================================
+    public void ComprobarEstadoEquipo()
+    {
+        // Solo el Servidor es el juez absoluto
+        if (!IsServer) return;
+
+        int jugadoresVivos = 0;
+
+        // Recorremos todos los clientes conectados
+        foreach (var cliente in NetworkManager.Singleton.ConnectedClientsList)
+        {
+            if (cliente.PlayerObject != null)
+            {
+                SaludJugador salud = cliente.PlayerObject.GetComponent<SaludJugador>();
+                if (salud != null && !salud.estaMuerto)
+                {
+                    jugadoresVivos++;
+                }
+            }
+        }
+
+        if (jugadoresVivos == 0)
+        {
+            Debug.Log("<color=red>[GameManager] GAME OVER - TODOS HAN MUERTO</color>");
+            // Aquí pondremos la rutina para cargar el menú principal
+            // StartCoroutine(RutinaGameOver());
+        }
+        else
+        {
+            Debug.Log($"<color=yellow>[GameManager] Quedan {jugadoresVivos} jugadores vivos. La partida continúa.</color>");
+        }
+    }
 }

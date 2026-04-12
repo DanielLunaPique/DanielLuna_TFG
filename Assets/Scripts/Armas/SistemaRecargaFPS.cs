@@ -29,12 +29,10 @@ public class SistemaRecargaFPS : MonoBehaviour
         {
             if (arma.balasActuales < arma.estadisticas.balasCargador && arma.balasReserva > 0)
             {
+                GetComponentInParent<SistemaVoces>().ReproducirFrase(SistemaVoces.TipoVoz.Recarga);
+
                 // Guardamos la corrutina en nuestra variable
                 corrutinaRecargaActiva = StartCoroutine(RutinaRecarga(arma));
-            }
-            else
-            {
-                Debug.Log("El cargador ya está lleno o no tienes balas de reserva.");
             }
         }
 
@@ -58,8 +56,6 @@ public class SistemaRecargaFPS : MonoBehaviour
         // 2. Apagamos el semáforo para que el jugador pueda volver a disparar o correr
         controladorFPS.estaRecargando = false;
 
-        Debug.Log("¡Recarga Cancelada por Sprint!");
-
         // [FUTURO ANIMATOR] Aquí le dirías a los brazos que vuelvan a la postura de correr
         // animatorBrazos.SetTrigger("CancelarRecarga");
     }
@@ -68,7 +64,6 @@ public class SistemaRecargaFPS : MonoBehaviour
     {
         // 1. ENCENDEMOS EL SEMÁFORO ROJO (Bloqueamos disparo y otras acciones)
         controladorFPS.estaRecargando = true;
-        Debug.Log("Recargando...");
 
         // [FUTURO ANIMATOR] Aquí lanzaremos la animación: animatorBrazos.SetTrigger("Recargar");
         // [FUTURO AUDIO] Aquí reproduciremos el sonido: audioSource.PlayOneShot(sonidoRecarga);
@@ -84,8 +79,6 @@ public class SistemaRecargaFPS : MonoBehaviour
 
         arma.balasActuales += balasARecargar;
         arma.balasReserva -= balasARecargar;
-
-        Debug.Log($"¡Recarga Completa! Cargador: {arma.balasActuales} | Reserva: {arma.balasReserva}");
 
         // 4. PONEMOS EL SEMÁFORO EN VERDE
         controladorFPS.estaRecargando = false;
