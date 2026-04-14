@@ -32,6 +32,8 @@ public class UIManager : MonoBehaviour
     private NetworkMovement movJugador;
     private ControladorCamaraFPS camJugador;
 
+    public static UIManager Instance;
+
 
     private void Start()
     {
@@ -43,6 +45,8 @@ public class UIManager : MonoBehaviour
             gameObject.SetActive(false);
             return;
         }
+
+        Instance = this; 
 
         // 2. Buscar referencias en la RAÍZ del jugador (Para encontrar todo sin fallos)
         if (netObj != null)

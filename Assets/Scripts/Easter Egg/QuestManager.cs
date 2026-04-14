@@ -1,21 +1,20 @@
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using Unity.Collections;
 
 public class QuestManager : NetworkBehaviour
 {
     public static QuestManager Instance;
 
-    [Header("Hilo Principal (Main Easter Egg)")]
-    [Tooltip("Arrastra aquí los ScriptableObjects de los pasos fijos en orden")]
-    public List<QuestStep> pasosPrincipales = new List<QuestStep>();
+    [Header("Configuración")]
+    public QuestTimeline timelineActiva;
 
-    // Variable de red para que todos los jugadores sepan en qué paso estamos
-    // Se usa un "int" (índice) porque sincronizar textos largos por red pesa mucho
-    public NetworkVariable<int> indicePasoActual = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    // Variables de Red sincronizadas
+    public NetworkVariable<int> indiceTimeline = new NetworkVariable<int>(0);
+    public NetworkVariable<FixedString128Bytes> textoHUDActual = new NetworkVariable<FixedString128Bytes>("");
 
-    // Guardamos la misión activa para no buscarla todo el rato
-    private QuestStep misionActiva;
+    public QuestStep pasoActivo;
 
     private void Awake()
     {
@@ -25,102 +24,69 @@ public class QuestManager : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        // Solo el servidor controla el flujo de misiones
-        if (IsServer)
-        {
-            if (pasosPrincipales.Count > 0)
-            {
-                EmpezarPaso(0);
-            }
-        }
+        if (IsServer) DeterminarSiguientePaso();
 
-        // Cada vez que el servidor cambia de paso, los clientes actualizan su HUD
-        indicePasoActual.OnValueChanged += AlCambiarDePaso;
+        // Cuando el servidor cambie el texto, el cliente actualiza SU UIManager
+        textoHUDActual.OnValueChanged += (oldV, newV) => {
+            if (UIManager.Instance != null)
+                UIManager.Instance.ActualizarTextoObjetivo(newV.ToString());
+        };
 
-        if (pasosPrincipales.Count > 0)
+        // Forzar el texto al aparecer por primera vez
+        if (UIManager.Instance != null)
+            UIManager.Instance.ActualizarTextoObjetivo(textoHUDActual.Value.ToString());
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void NotificarPasoCompletadoServerRpc(string idCompletado)
+    {
+        // Solo avanzamos si el ID coincide con la misión que el servidor tiene activa
+        if (pasoActivo != null && pasoActivo.ID == idCompletado)
         {
-            AlCambiarDePaso(0, indicePasoActual.Value);
+            Debug.Log($"[EasterEgg] Paso '{idCompletado}' completado con éxito.");
+            indiceTimeline.Value++;
+            DeterminarSiguientePaso();
         }
     }
 
-    // ==========================================
-    // LÓGICA DEL SERVIDOR (El que toma decisiones)
-    // ==========================================
-
-    private void EmpezarPaso(int indice)
+    private void DeterminarSiguientePaso()
     {
         if (!IsServer) return;
 
-        if (indice < pasosPrincipales.Count)
+        // ¿Hemos llegado al final de la línea de tiempo?
+        if (indiceTimeline.Value >= timelineActiva.secuencia.Count)
         {
-            indicePasoActual.Value = indice;
-            misionActiva = pasosPrincipales[indice];
-            misionActiva.EmpezarMision();
+            textoHUDActual.Value = "¡ESCAPE DISPONIBLE!";
+            pasoActivo = null;
+            return;
+        }
+
+        ElementoTimeline elemento = timelineActiva.secuencia[indiceTimeline.Value];
+
+        // Probabilidad de que esta casilla se active (útil para misiones opcionales)
+        if (Random.Range(0, 100) > elemento.probabilidadDeActivacion)
+        {
+            indiceTimeline.Value++;
+            DeterminarSiguientePaso();
+            return;
+        }
+
+        if (elemento.tipo == ElementoTimeline.TipoElemento.Fijo)
+        {
+            pasoActivo = elemento.pasoFijo;
         }
         else
         {
-            Debug.Log("<color=cyan>[QuestManager] ¡EASTER EGG COMPLETADO! Iniciar huida a Utopía.</color>");
-        }
-    }
-
-    private void Update()
-    {
-        if (!IsServer || misionActiva == null) return;
-
-        // Si la misión necesita comprobar cosas en el tiempo (ej: aguantar 1 minuto), lo hace aquí
-        if (!misionActiva.estaCompletada)
-        {
-            misionActiva.ActualizarMision();
-        }
-    }
-
-    /// <summary>
-    /// Esta función la llamarán los objetos del mapa (ej. La palanca de luz).
-    /// </summary>
-    public void IntentarAvanzarMision(string nombreAComprobar)
-    {
-        if (!IsServer || misionActiva == null) return;
-
-        // El objeto pregunta: "¿Soy yo la misión actual?"
-        if (misionActiva.nombreMision == nombreAComprobar)
-        {
-            misionActiva.CompletarMision();
-
-            // Pasamos a la siguiente "perla" del collar
-            EmpezarPaso(indicePasoActual.Value + 1);
-        }
-        else
-        {
-            Debug.Log($"[QuestManager] El jugador ha intentado interactuar con '{nombreAComprobar}', pero la misión actual es '{misionActiva.nombreMision}'.");
-        }
-    }
-
-    // ==========================================
-    // LÓGICA DE LOS CLIENTES (El HUD y los efectos)
-    // ==========================================
-
-    private void AlCambiarDePaso(int viejoIndice, int nuevoIndice)
-    {
-        if (nuevoIndice < pasosPrincipales.Count)
-        {
-            string textoNuevoObjetivo = pasosPrincipales[nuevoIndice].textoHUD;
-            Debug.Log($"[CLIENTE] HUD Actualizado: {textoNuevoObjetivo}");
-
-            // Buscamos el UIManager del jugador local y le cambiamos el texto
-            UIManager uiLocal = FindObjectOfType<UIManager>();
-            if (uiLocal != null)
+            // ELEGIMOS UNA AL AZAR del pool que tú has configurado para este hueco
+            if (elemento.poolAleatorio.Count > 0)
             {
-                uiLocal.ActualizarTextoObjetivo(textoNuevoObjetivo);
+                int r = Random.Range(0, elemento.poolAleatorio.Count);
+                pasoActivo = elemento.poolAleatorio[r];
             }
         }
-    }
 
-    public override void OnDestroy()
-    {
-        if (NetworkManager.Singleton != null)
-        {
-            indicePasoActual.OnValueChanged -= AlCambiarDePaso;
-        }
-        base.OnDestroy();
+        // Actualizamos el texto para que todos los jugadores lo vean en su HUD
+        if (pasoActivo != null)
+            textoHUDActual.Value = pasoActivo.textoHUD;
     }
 }
