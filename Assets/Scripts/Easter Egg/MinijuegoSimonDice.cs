@@ -10,7 +10,6 @@ public class MinijuegoSimonDice : NetworkBehaviour
     [Header("Pantallas/Botones")]
     public InteraccionBotonSimon[] botones; // Arrastra aquí los 4 botones físicos
     public Material matApagado;
-    public Material matEncendido; // Un material con Emission activada
 
     // Variables internas del servidor
     private List<int> secuenciaServidor = new List<int>();
@@ -24,8 +23,8 @@ public class MinijuegoSimonDice : NetworkBehaviour
         // Solo arranca si estamos en la misión correcta y el servidor no ha empezado
         if (IsServer && !esperandoJugador && secuenciaServidor.Count == 0)
         {
-            if (QuestManager.Instance.pasoActivo != null &&
-                QuestManager.Instance.pasoActivo.ID == idMisionAsociada)
+            // CAMBIO: Ahora leemos el ID desde la variable de red segura
+            if (QuestManager.Instance.idPasoActual.Value.ToString() == idMisionAsociada)
             {
                 EmpezarNuevaRonda();
             }
@@ -70,11 +69,13 @@ public class MinijuegoSimonDice : NetworkBehaviour
     [ClientRpc]
     private void IluminarBotonClientRpc(int indiceBoton, bool encender)
     {
-        // Cambiamos el material del botón (MeshRenderer)
-        MeshRenderer malla = botones[indiceBoton].GetComponent<MeshRenderer>();
+        InteraccionBotonSimon boton = botones[indiceBoton];
+        MeshRenderer malla = boton.GetComponent<MeshRenderer>();
+
         if (malla != null)
         {
-            malla.material = encender ? matEncendido : matApagado;
+            // Si encender es true, usa el material propio del botón. Si es false, usa el apagado general.
+            malla.material = encender ? boton.materialEncendido : matApagado;
         }
     }
 

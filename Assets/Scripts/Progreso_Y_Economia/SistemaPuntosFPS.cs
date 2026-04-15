@@ -34,7 +34,7 @@ public class SistemaPuntosFPS : NetworkBehaviour
     public bool IntentarComprar(int coste)
     {
         // 1. Chivato inicial: ¿Quién ejecuta esto y cuánto dinero ve?
-        Debug.Log($"[BANCO] Intentando comprar algo de {coste} pts. Dinero actual en cuenta: {puntos.Value}. ¿Se ejecuta en el Servidor?: {IsServer}");
+        //Debug.Log($"[BANCO] Intentando comprar algo de {coste} pts. Dinero actual en cuenta: {puntos.Value}. ¿Se ejecuta en el Servidor?: {IsServer}");
 
         // 2. Comprobamos si tiene suficiente (OJO: tiene que ser >=, no solo >)
         if (puntos.Value >= coste)

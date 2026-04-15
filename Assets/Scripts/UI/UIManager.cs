@@ -75,6 +75,11 @@ public class UIManager : MonoBehaviour
         if (textoInteraccion != null) textoInteraccion.gameObject.SetActive(false);
         if (panelEspectador != null) panelEspectador.SetActive(false);
         if (panelTiendaMedica != null) panelTiendaMedica.SetActive(false);
+
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.ForzarActualizacionHUD();
+        }
     }
 
     // ==========================================

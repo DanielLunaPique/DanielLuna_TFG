@@ -21,4 +21,5 @@ MonoBehaviour:
     pasoFijo: {fileID: 0}
     poolAleatorio:
     - {fileID: 11400000, guid: 9e13ee15c3a2f7049a0446cd700dc16c, type: 2}
+    - {fileID: 11400000, guid: 6806d999959c72242b7853da07f037f4, type: 2}
     probabilidadDeActivacion: 100

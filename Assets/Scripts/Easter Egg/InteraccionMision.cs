@@ -3,63 +3,47 @@ using Unity.Netcode;
 
 public class InteraccionMision : NetworkBehaviour
 {
-    [Header("Configuración")]
-    [Tooltip("Debe coincidir EXACTAMENTE con el campo 'ID' de tu ScriptableObject QuestStep")]
     public string idMisionAsociada = "Energia";
-
     private bool jugadorCerca = false;
     private UIManager uiLocalJugador;
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") && other.GetComponent<NetworkObject>().IsOwner)
         {
-            NetworkObject netObj = other.GetComponent<NetworkObject>();
-            if (netObj != null && netObj.IsOwner)
+            // Solo intentamos mostrar si es el paso correcto
+            if (QuestManager.Instance.idPasoActual.Value.ToString() == idMisionAsociada)
             {
                 jugadorCerca = true;
-                // Accedemos a su UIManager local
                 uiLocalJugador = other.GetComponentInChildren<UIManager>();
-
                 if (uiLocalJugador != null)
-                {
                     uiLocalJugador.MostrarTextoInteraccion($"Pulsa [E] para {idMisionAsociada}");
-                }
             }
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") && other.GetComponent<NetworkObject>().IsOwner)
         {
-            NetworkObject netObj = other.GetComponent<NetworkObject>();
-            if (netObj != null && netObj.IsOwner)
-            {
-                jugadorCerca = false;
-                if (uiLocalJugador != null)
-                {
-                    uiLocalJugador.OcultarTextoInteraccion();
-                }
-            }
+            jugadorCerca = false;
+            if (uiLocalJugador != null) uiLocalJugador.OcultarTextoInteraccion();
         }
     }
 
     private void Update()
     {
-        if (QuestManager.Instance.pasoActivo == null ||
-        QuestManager.Instance.pasoActivo.ID != idMisionAsociada)
+        // SEGURIDAD: Si el paso cambia mientras estamos cerca, ocultamos el texto
+        if (jugadorCerca && QuestManager.Instance.idPasoActual.Value.ToString() != idMisionAsociada)
         {
-            // Opcional: Si el jugador estaba cerca, ocultamos el texto de interacción
-            if (jugadorCerca) uiLocalJugador.OcultarTextoInteraccion();
+            jugadorCerca = false;
+            if (uiLocalJugador != null) uiLocalJugador.OcultarTextoInteraccion();
             return;
         }
 
         if (jugadorCerca && Input.GetKeyDown(KeyCode.E))
         {
             if (uiLocalJugador != null) uiLocalJugador.OcultarTextoInteraccion();
-
-            // Llamamos a la nueva función del QuestManager
             CompletarAccionServerRpc();
         }
     }
@@ -67,10 +51,6 @@ public class InteraccionMision : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void CompletarAccionServerRpc()
     {
-        if (QuestManager.Instance != null)
-        {
-            // CAMBIO CLAVE: Usamos el nuevo método del Manager
-            QuestManager.Instance.NotificarPasoCompletadoServerRpc(idMisionAsociada);
-        }
+        QuestManager.Instance.NotificarPasoCompletadoServerRpc(idMisionAsociada);
     }
 }

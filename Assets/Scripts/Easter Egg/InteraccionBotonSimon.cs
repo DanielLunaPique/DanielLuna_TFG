@@ -8,6 +8,10 @@ public class InteraccionBotonSimon : NetworkBehaviour
     [Tooltip("El número de este botón (0, 1, 2 o 3)")]
     public int indiceDeEsteBoton;
 
+    [Header("Visuales")]
+    [Tooltip("El material brillante específico para este botón (Rojo, Azul, etc)")]
+    public Material materialEncendido;
+
     private bool jugadorCerca = false;
 
     private void OnTriggerEnter(Collider other)

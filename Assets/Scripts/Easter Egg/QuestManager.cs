@@ -13,8 +13,10 @@ public class QuestManager : NetworkBehaviour
     // Variables de Red sincronizadas
     public NetworkVariable<int> indiceTimeline = new NetworkVariable<int>(0);
     public NetworkVariable<FixedString128Bytes> textoHUDActual = new NetworkVariable<FixedString128Bytes>("");
+    // AÑADIMOS ESTA: Para que los clientes sepan el ID de la misión activa
+    public NetworkVariable<FixedString32Bytes> idPasoActual = new NetworkVariable<FixedString32Bytes>("");
 
-    public QuestStep pasoActivo;
+    private QuestStep pasoActivo; // Solo servidor
 
     private void Awake()
     {
@@ -26,24 +28,32 @@ public class QuestManager : NetworkBehaviour
     {
         if (IsServer) DeterminarSiguientePaso();
 
-        // Cuando el servidor cambie el texto, el cliente actualiza SU UIManager
+        // Cada vez que cambie el texto, actualizamos el HUD
         textoHUDActual.OnValueChanged += (oldV, newV) => {
-            if (UIManager.Instance != null)
-                UIManager.Instance.ActualizarTextoObjetivo(newV.ToString());
+            ActualizarHUDLocal(newV.ToString());
         };
 
-        // Forzar el texto al aparecer por primera vez
+        // Forzamos actualización inicial
+        ActualizarHUDLocal(textoHUDActual.Value.ToString());
+    }
+
+    private void ActualizarHUDLocal(string texto)
+    {
         if (UIManager.Instance != null)
-            UIManager.Instance.ActualizarTextoObjetivo(textoHUDActual.Value.ToString());
+            UIManager.Instance.ActualizarTextoObjetivo(texto);
+    }
+
+    // Si el UIManager tarda en cargar, él mismo llamará aquí al Start
+    public void ForzarActualizacionHUD()
+    {
+        ActualizarHUDLocal(textoHUDActual.Value.ToString());
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void NotificarPasoCompletadoServerRpc(string idCompletado)
     {
-        // Solo avanzamos si el ID coincide con la misión que el servidor tiene activa
         if (pasoActivo != null && pasoActivo.ID == idCompletado)
         {
-            Debug.Log($"[EasterEgg] Paso '{idCompletado}' completado con éxito.");
             indiceTimeline.Value++;
             DeterminarSiguientePaso();
         }
@@ -53,17 +63,16 @@ public class QuestManager : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        // ¿Hemos llegado al final de la línea de tiempo?
         if (indiceTimeline.Value >= timelineActiva.secuencia.Count)
         {
             textoHUDActual.Value = "¡ESCAPE DISPONIBLE!";
+            idPasoActual.Value = "FIN";
             pasoActivo = null;
             return;
         }
 
         ElementoTimeline elemento = timelineActiva.secuencia[indiceTimeline.Value];
 
-        // Probabilidad de que esta casilla se active (útil para misiones opcionales)
         if (Random.Range(0, 100) > elemento.probabilidadDeActivacion)
         {
             indiceTimeline.Value++;
@@ -72,21 +81,14 @@ public class QuestManager : NetworkBehaviour
         }
 
         if (elemento.tipo == ElementoTimeline.TipoElemento.Fijo)
-        {
             pasoActivo = elemento.pasoFijo;
-        }
         else
-        {
-            // ELEGIMOS UNA AL AZAR del pool que tú has configurado para este hueco
-            if (elemento.poolAleatorio.Count > 0)
-            {
-                int r = Random.Range(0, elemento.poolAleatorio.Count);
-                pasoActivo = elemento.poolAleatorio[r];
-            }
-        }
+            pasoActivo = elemento.poolAleatorio[Random.Range(0, elemento.poolAleatorio.Count)];
 
-        // Actualizamos el texto para que todos los jugadores lo vean en su HUD
         if (pasoActivo != null)
+        {
             textoHUDActual.Value = pasoActivo.textoHUD;
+            idPasoActual.Value = pasoActivo.ID; // Sincronizamos el ID con los clientes
+        }
     }
 }
