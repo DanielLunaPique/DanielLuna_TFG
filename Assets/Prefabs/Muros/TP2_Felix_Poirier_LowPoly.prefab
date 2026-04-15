@@ -1159,6 +1159,7 @@ GameObject:
   - component: {fileID: 3441721137995556596}
   - component: {fileID: 8443594321383163812}
   - component: {fileID: 4971960744362892867}
+  - component: {fileID: 5974632995304120806}
   m_Layer: 0
   m_Name: Door_L001
   m_TagString: Untagged
@@ -1344,6 +1345,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.4645878, y: 0.29342636, z: 2.5886686}
   m_Center: {x: 0.028419489, y: -0.2421282, z: 1.281377}
+--- !u!114 &5974632995304120806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2485201115019961935}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07e74325def12624b9e0d4ff9c90475a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BloqueoPuertaEasterEgg
+  ShowTopMostFoldoutHeaderGroup: 1
+  indiceTimelineDesbloqueo: 2
+  scriptPuertaOriginal: {fileID: 5244756644150350578}
 --- !u!1 &2529195900108367697
 GameObject:
   m_ObjectHideFlags: 0

@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1948130805818360746}
+  - component: {fileID: 1903561441951374833}
   m_Layer: 0
   m_Name: Cajas Militares
   m_TagString: Untagged
@@ -35,6 +36,27 @@ Transform:
   - {fileID: 3701075516784161136}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1903561441951374833
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2837744859291758525}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 7.3871765, y: 3.5435648, z: 1.1861267}
+  m_Center: {x: -1.8746948, y: 1.2717824, z: 0.033981323}
 --- !u!1001 &1875810606844382450
 PrefabInstance:
   m_ObjectHideFlags: 0

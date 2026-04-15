@@ -77,8 +77,8 @@ public class CajaMisteriosa : NetworkBehaviour
             }
             else
             {
-                uiManagerLocal.MostrarTextoInteraccion($"Pulsa [F] para usar la Caja - {precioCaja} pts");
-                if (Input.GetKeyDown(KeyCode.F)) SolicitarCaja();
+                uiManagerLocal.MostrarTextoInteraccion($"Pulsa [E] para usar la Caja - {precioCaja} pts");
+                if (Input.GetKeyDown(KeyCode.E)) SolicitarCaja();
             }
         }
         else if (estadoActual.Value == EstadoCaja.Procesando)
@@ -90,8 +90,8 @@ public class CajaMisteriosa : NetworkBehaviour
         {
             if (NetworkManager.Singleton.LocalClientId == idCompradorActual.Value)
             {
-                uiManagerLocal.MostrarTextoInteraccion($"Pulsa [F] para coger {armasPosibles[indiceArmaGenerada.Value].nombreArma}");
-                if (Input.GetKeyDown(KeyCode.F)) RecogerArmaServerRpc();
+                uiManagerLocal.MostrarTextoInteraccion($"Pulsa [E] para coger {armasPosibles[indiceArmaGenerada.Value].nombreArma}");
+                if (Input.GetKeyDown(KeyCode.E)) RecogerArmaServerRpc();
             }
         }
     }
@@ -137,8 +137,39 @@ public class CajaMisteriosa : NetworkBehaviour
             yield break;
         }
 
-        // Elegimos el arma al azar
-        indiceArmaGenerada.Value = Random.Range(0, armasPosibles.Length);
+        // --- NUEVA LÓGICA ANTI-DUPLICADOS ---
+        // 1. Buscamos el inventario del comprador actual
+        var jugador = NetworkManager.Singleton.ConnectedClients[idCompradorActual.Value].PlayerObject;
+        InventarioArmas inventarioJugador = jugador.GetComponentInChildren<InventarioArmas>();
+
+        List<int> indicesDisponibles = new List<int>();
+
+        // 2. Filtramos la lista de armas posibles
+        for (int i = 0; i < armasPosibles.Length; i++)
+        {
+            // Si el inventario existe y el jugador YA TIENE esta arma, nos la saltamos
+            if (inventarioJugador != null && inventarioJugador.TieneArma(armasPosibles[i]))
+            {
+                continue;
+            }
+
+            // Si no la tiene, es una candidata válida
+            indicesDisponibles.Add(i);
+        }
+
+        // 3. Elegimos el arma al azar SOLO de las que no tiene
+        if (indicesDisponibles.Count > 0)
+        {
+            indiceArmaGenerada.Value = indicesDisponibles[Random.Range(0, indicesDisponibles.Count)];
+        }
+        else
+        {
+            // Sistema de seguridad: si por algún motivo ya tiene TODAS las armas del juego, 
+            // le damos una al azar de la lista completa para no romper el código.
+            indiceArmaGenerada.Value = Random.Range(0, armasPosibles.Length);
+        }
+        // ------------------------------------
+
         IniciarInvocacionClientRpc(indiceArmaGenerada.Value);
 
         yield return new WaitForSeconds(tiempoAparicionArma);

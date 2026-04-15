@@ -1,5 +1,6 @@
 using UnityEngine;
 
+
 public class InventarioArmas : MonoBehaviour
 {
     [Header("Referencias")]
@@ -86,6 +87,19 @@ public class InventarioArmas : MonoBehaviour
         ConfigurarArmaEnControlador();
 
         Debug.Log($"¡Has recibido un/a {statsNuevaArma.nombreArma} en el hueco {huecoDestino}!");
+    }
+    public bool TieneArma(EstadisticasArma armaAComprobar)
+    {
+        // Asumiendo que tienes un array o lista de armas equipadas. 
+        // Adapta "misArmas" al nombre de tu variable donde guardas las armas actuales.
+        foreach (var arma in armasEquipadas)
+        {
+            if (arma != null && arma.estadisticas.nombreArma == armaAComprobar.nombreArma)
+            {
+                return true; // Ya la tiene
+            }
+        }
+        return false; // No la tiene
     }
 
     // --- SISTEMA DE CAMBIO DE ARMA ---

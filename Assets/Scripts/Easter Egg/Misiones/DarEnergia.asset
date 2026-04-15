@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9964413fcd5ac1c4d8a5e6c665b7c921, type: 3}
   m_Name: DarEnergia
   m_EditorClassIdentifier: Assembly-CSharp::PasoEnergia
-  ID: 0
+  ID: DarEnergia
   textoHUD: "OBJETIVO: Encuentra el generador y act\xEDvalo.\n"

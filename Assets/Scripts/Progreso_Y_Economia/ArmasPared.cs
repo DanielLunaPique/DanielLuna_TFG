@@ -28,7 +28,7 @@ public class ArmasPared : NetworkBehaviour
             // Para no spamear la consola 60 veces por segundo, lo ponemos solo si pulsa la tecla, 
             // pero en tu UI real esto actualizará el texto de la pantalla.
 
-            if (Input.GetKeyDown(KeyCode.F))
+            if (Input.GetKeyDown(KeyCode.E))
             {
                 // Le pedimos al servidor que procese la compra
                 ulong miDNI = NetworkManager.Singleton.LocalClientId;
@@ -70,7 +70,7 @@ public class ArmasPared : NetworkBehaviour
 
             if (uiManagerLocal != null)
             {
-                uiManagerLocal.MostrarTextoInteraccion($"Pulsa [F] para {tipo} {armaAComprar.nombreArma} - {coste} pts");
+                uiManagerLocal.MostrarTextoInteraccion($"Pulsa [E] para {tipo} {armaAComprar.nombreArma} - {coste} pts");
             }
         }
     }

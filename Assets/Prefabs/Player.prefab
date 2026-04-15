@@ -638,7 +638,7 @@ MonoBehaviour:
   intensidadSway: 2
   swayMaximo: 3
   velocidadBobbing: 14
-  cantidadBobbing: 0.025
+  cantidadBobbing: 0.04
   posicionBase: {x: 0, y: 0, z: 0}
   multiplicadorDispersion: 1
   penalizacionDisparo: 0

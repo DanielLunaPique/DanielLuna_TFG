@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9964413fcd5ac1c4d8a5e6c665b7c921, type: 3}
   m_Name: Hackeo
   m_EditorClassIdentifier: Assembly-CSharp::QuestStep
-  ID: 2
+  ID: Hackeo
   textoHUD: Hackea el panel de seguridad para desbloquear la puerta.

@@ -5,21 +5,28 @@ public class InteraccionBotonSimon : NetworkBehaviour
 {
     [Header("Configuración")]
     public MinijuegoSimonDice gestorPrincipal;
-    [Tooltip("El número de este botón (0, 1, 2 o 3)")]
     public int indiceDeEsteBoton;
-
-    [Header("Visuales")]
-    [Tooltip("El material brillante específico para este botón (Rojo, Azul, etc)")]
     public Material materialEncendido;
 
+    [Header("Referencias Visuales")]
+    [Tooltip("Arrastra aquí el objeto HIJO que tiene el MeshRenderer de la pantalla")]
+    public MeshRenderer mallaPantalla;
+
     private bool jugadorCerca = false;
+    private UIManager uiLocalJugador;
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player") && other.GetComponent<NetworkObject>().IsOwner)
         {
-            jugadorCerca = true;
-            other.GetComponentInChildren<UIManager>().MostrarTextoInteraccion("Pulsa [E] para activar nodo");
+            // Solo mostramos texto si estamos en el paso del Hackeo
+            if (QuestManager.Instance.idPasoActual.Value.ToString() == gestorPrincipal.idMisionAsociada)
+            {
+                jugadorCerca = true;
+                uiLocalJugador = other.GetComponentInChildren<UIManager>();
+                if (uiLocalJugador != null)
+                    uiLocalJugador.MostrarTextoInteraccion("Pulsa [E] para interactuar");
+            }
         }
     }
 
@@ -28,15 +35,24 @@ public class InteraccionBotonSimon : NetworkBehaviour
         if (other.CompareTag("Player") && other.GetComponent<NetworkObject>().IsOwner)
         {
             jugadorCerca = false;
-            other.GetComponentInChildren<UIManager>().OcultarTextoInteraccion();
+            if (uiLocalJugador != null) uiLocalJugador.OcultarTextoInteraccion();
         }
     }
 
     private void Update()
     {
-        if (jugadorCerca && Input.GetKeyDown(KeyCode.E))
+        if (!jugadorCerca) return;
+
+        // Si el paso de hackeo termina/cambia, apagamos el texto por seguridad
+        if (QuestManager.Instance.idPasoActual.Value.ToString() != gestorPrincipal.idMisionAsociada)
         {
-            // Le mandamos la pulsación al servidor
+            jugadorCerca = false;
+            if (uiLocalJugador != null) uiLocalJugador.OcultarTextoInteraccion();
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
             PulsarBotonServerRpc();
         }
     }
@@ -46,7 +62,7 @@ public class InteraccionBotonSimon : NetworkBehaviour
     {
         if (gestorPrincipal != null)
         {
-            gestorPrincipal.RecibirPulsacion(indiceDeEsteBoton);
+            gestorPrincipal.IntentarInteractuar(indiceDeEsteBoton);
         }
     }
 }

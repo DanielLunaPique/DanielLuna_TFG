@@ -7,114 +7,152 @@ public class MinijuegoSimonDice : NetworkBehaviour
 {
     public string idMisionAsociada = "Hackeo";
 
-    [Header("Pantallas/Botones")]
-    public InteraccionBotonSimon[] botones; // Arrastra aquí los 4 botones físicos
+    [Header("Configuración")]
+    public InteraccionBotonSimon[] botones;
     public Material matApagado;
+    public int nivelMaximo = 5;
+    public float tiempoLimiteInactividad = 10f; // Tiempo antes de fallar por AFK
 
-    // Variables internas del servidor
+    [Header("Audio")]
+    public AudioClip sonidoBoton; // Un pitido genérico que tú o tu colega grabéis
+
+    // Estados
+    private enum EstadoSimon { Inactivo, EsperandoInicio, Presentacion, Reproduciendo, EsperandoJugador }
+    private EstadoSimon estadoActual = EstadoSimon.Inactivo;
+
     private List<int> secuenciaServidor = new List<int>();
     private int indiceJugadorActual = 0;
-    private int nivelActual = 3; // Empezamos con 3 luces
-    private int nivelMaximo = 5; // Hay que superar 3 niveles (3, 4 y 5 luces)
-    private bool esperandoJugador = false;
+    private int nivelActual = 1;
+    private float temporizadorAFK = 0f;
 
     private void Update()
     {
-        // Solo arranca si estamos en la misión correcta y el servidor no ha empezado
-        if (IsServer && !esperandoJugador && secuenciaServidor.Count == 0)
+        if (!IsServer) return;
+
+        // 1. Activar el minijuego si toca el paso
+        if (estadoActual == EstadoSimon.Inactivo)
         {
-            // CAMBIO: Ahora leemos el ID desde la variable de red segura
             if (QuestManager.Instance.idPasoActual.Value.ToString() == idMisionAsociada)
             {
-                EmpezarNuevaRonda();
+                estadoActual = EstadoSimon.EsperandoInicio;
+            }
+        }
+
+        // 2. Control de Inactividad (Anti-Trolls)
+        if (estadoActual == EstadoSimon.EsperandoJugador)
+        {
+            temporizadorAFK += Time.deltaTime;
+            if (temporizadorAFK >= tiempoLimiteInactividad)
+            {
+                Debug.LogWarning("[SimonDice] ¡Tiempo agotado! Reseteando...");
+                StartCoroutine(PenalizacionFallo());
             }
         }
     }
 
-    private void EmpezarNuevaRonda()
-    {
-        secuenciaServidor.Clear();
-        indiceJugadorActual = 0;
-        esperandoJugador = false;
+    // ==========================================
+    // FLUJO DEL JUEGO
+    // ==========================================
 
-        // Generamos la secuencia al azar
-        for (int i = 0; i < nivelActual; i++)
+    public void IntentarInteractuar(int indiceBoton)
+    {
+        if (!IsServer) return;
+
+        if (estadoActual == EstadoSimon.EsperandoInicio)
+        {
+            // El jugador pulsa por primera vez para arrancar
+            StartCoroutine(FasePresentacion());
+        }
+        else if (estadoActual == EstadoSimon.EsperandoJugador)
+        {
+            // El jugador pulsa intentando adivinar la secuencia
+            RecibirPulsacion(indiceBoton);
+        }
+    }
+
+    private IEnumerator FasePresentacion()
+    {
+        estadoActual = EstadoSimon.Presentacion;
+
+        // Generamos TODA la secuencia de los 5 niveles de golpe
+        secuenciaServidor.Clear();
+        for (int i = 0; i < nivelMaximo; i++)
         {
             secuenciaServidor.Add(Random.Range(0, botones.Length));
         }
+
+        nivelActual = 1; // Empezamos pidiendo 1 sola pulsación
+
+        // Encendemos todas las luces 2 segundos
+        for (int i = 0; i < botones.Length; i++) IluminarBotonClientRpc(i, true);
+        ReproducirSonidoClientRpc(0); // Sonido de inicio
+
+        yield return new WaitForSeconds(2f);
+
+        // Apagamos todas
+        for (int i = 0; i < botones.Length; i++) IluminarBotonClientRpc(i, false);
+
+        yield return new WaitForSeconds(1f);
 
         StartCoroutine(ReproducirSecuencia());
     }
 
     private IEnumerator ReproducirSecuencia()
     {
-        yield return new WaitForSeconds(1f); // Pausa dramática
+        estadoActual = EstadoSimon.Reproduciendo;
+        yield return new WaitForSeconds(0.5f);
 
-        foreach (int indice in secuenciaServidor)
+        // Reproducimos solo hasta el nivel actual (ej: Nivel 3 = 3 luces)
+        for (int i = 0; i < nivelActual; i++)
         {
-            // Le decimos a todos los PCs que enciendan esta luz
+            int indice = secuenciaServidor[i];
+
             IluminarBotonClientRpc(indice, true);
+            ReproducirSonidoClientRpc(indice);
 
-            // Aquí puedes reproducir un sonido de "Bip"
-
-            yield return new WaitForSeconds(0.6f); // Tiempo encendido
+            yield return new WaitForSeconds(0.6f);
 
             IluminarBotonClientRpc(indice, false);
-            yield return new WaitForSeconds(0.2f); // Tiempo apagado entre luces
+            yield return new WaitForSeconds(0.2f);
         }
 
-        esperandoJugador = true;
+        // Le toca al jugador
+        indiceJugadorActual = 0;
+        temporizadorAFK = 0f; // Reseteamos temporizador
+        estadoActual = EstadoSimon.EsperandoJugador;
     }
 
-    [ClientRpc]
-    private void IluminarBotonClientRpc(int indiceBoton, bool encender)
+    private void RecibirPulsacion(int indicePulsado)
     {
-        InteraccionBotonSimon boton = botones[indiceBoton];
-        MeshRenderer malla = boton.GetComponent<MeshRenderer>();
+        temporizadorAFK = 0f; // Cada vez que pulsa, le damos más tiempo
 
-        if (malla != null)
-        {
-            // Si encender es true, usa el material propio del botón. Si es false, usa el apagado general.
-            malla.material = encender ? boton.materialEncendido : matApagado;
-        }
-    }
-
-    // ==========================================
-    // EL JUGADOR PULSA UN BOTÓN
-    // ==========================================
-    public void RecibirPulsacion(int indicePulsado)
-    {
-        if (!IsServer || !esperandoJugador) return;
-
-        // Iluminamos el botón que acaba de pulsar (Feedback visual rápido)
         StartCoroutine(DestelloRapidoBoton(indicePulsado));
 
         if (indicePulsado == secuenciaServidor[indiceJugadorActual])
         {
-            // ¡Acertó!
+            // ¡Acierto!
             indiceJugadorActual++;
 
-            if (indiceJugadorActual >= secuenciaServidor.Count)
+            if (indiceJugadorActual >= nivelActual)
             {
-                // Superó el nivel
-                nivelActual++;
+                nivelActual++; // Sube la dificultad
+                estadoActual = EstadoSimon.Reproduciendo; // Bloquea inputs
+
                 if (nivelActual > nivelMaximo)
                 {
-                    Debug.Log("¡HACKEO COMPLETADO!");
+                    Debug.Log("[SimonDice] ¡HACKEO COMPLETADO!");
                     QuestManager.Instance.NotificarPasoCompletadoServerRpc(idMisionAsociada);
-                    esperandoJugador = false; // Bloqueamos para que no se juegue más
+                    estadoActual = EstadoSimon.Inactivo;
                 }
                 else
                 {
-                    // Siguiente nivel
-                    EmpezarNuevaRonda();
+                    StartCoroutine(ReproducirSecuencia());
                 }
             }
         }
         else
         {
-            // ¡Falló! (Aquí podrías hacer un ClientRpc para que todas las luces parpadeen en rojo)
-            Debug.LogWarning("¡Secuencia incorrecta! Repitiendo ronda...");
+            // ¡Fallo!
             StartCoroutine(PenalizacionFallo());
         }
     }
@@ -122,14 +160,57 @@ public class MinijuegoSimonDice : NetworkBehaviour
     private IEnumerator DestelloRapidoBoton(int indice)
     {
         IluminarBotonClientRpc(indice, true);
+        ReproducirSonidoClientRpc(indice);
         yield return new WaitForSeconds(0.3f);
         IluminarBotonClientRpc(indice, false);
     }
 
     private IEnumerator PenalizacionFallo()
     {
-        esperandoJugador = false;
+        estadoActual = EstadoSimon.Reproduciendo; // Bloquea inputs
+        // Podrías poner aquí un sonido de error grave
         yield return new WaitForSeconds(1.5f);
-        EmpezarNuevaRonda(); // Repite el nivel actual
+
+        // Volvemos a empezar toda la partida desde el nivel 1
+        StartCoroutine(FasePresentacion());
+    }
+
+    // ==========================================
+    // SINCRONIZACIÓN CON CLIENTES
+    // ==========================================
+
+    [ClientRpc]
+    private void IluminarBotonClientRpc(int indiceBoton, bool encender)
+    {
+        InteraccionBotonSimon boton = botones[indiceBoton];
+
+        if (boton.mallaPantalla != null)
+        {
+            boton.mallaPantalla.material = encender ? boton.materialEncendido : matApagado;
+        }
+        else
+        {
+            // Por si acaso se te olvida arrastrarlo, intentamos buscarlo en el objeto o hijos
+            MeshRenderer mallaAuto = boton.GetComponentInChildren<MeshRenderer>();
+            if (mallaAuto != null) mallaAuto.material = encender ? boton.materialEncendido : matApagado;
+        }
+    }
+
+    [ClientRpc]
+    private void ReproducirSonidoClientRpc(int indiceBoton)
+    {
+        if (sonidoBoton == null) return;
+
+        // Creamos un audio fantasma con Pitch dinámico (Magia musical)
+        GameObject tempAudio = new GameObject("SonidoSimon");
+        tempAudio.transform.position = botones[indiceBoton].transform.position;
+        AudioSource source = tempAudio.AddComponent<AudioSource>();
+
+        source.clip = sonidoBoton;
+        source.spatialBlend = 1f; // 3D
+        source.pitch = 1f + (indiceBoton * 0.2f); // Botón 0=1.0, Botón 1=1.2, Botón 2=1.4...
+
+        source.Play();
+        Destroy(tempAudio, sonidoBoton.length + 0.1f); // Se destruye solo al terminar
     }
 }

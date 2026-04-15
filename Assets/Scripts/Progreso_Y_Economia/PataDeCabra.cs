@@ -8,7 +8,7 @@ public class PataDeCabra : NetworkBehaviour
 
     void Update()
     {
-        if (jugadorCerca && Input.GetKeyDown(KeyCode.F))
+        if (jugadorCerca && Input.GetKeyDown(KeyCode.E))
         {
             // Le decimos al servidor que la hemos cogido
             RecogerServerRpc();
@@ -45,7 +45,7 @@ public class PataDeCabra : NetworkBehaviour
 
             if (uiManagerLocal != null)
             {
-                uiManagerLocal.MostrarTextoInteraccion("Pulsa [F] para recoger Pata de Cabra");
+                uiManagerLocal.MostrarTextoInteraccion("Pulsa [E] para recoger Pata de Cabra");
             }
         }
     }

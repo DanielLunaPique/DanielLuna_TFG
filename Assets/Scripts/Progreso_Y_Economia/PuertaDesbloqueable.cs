@@ -19,7 +19,7 @@ public class PuertaDesbloqueable : NetworkBehaviour
     {
         if (jugadorEnZona && !estaAbierta.Value)
         {
-            if (Input.GetKeyDown(KeyCode.F))
+            if (Input.GetKeyDown(KeyCode.E))
             {
                 ulong miDNI = NetworkManager.Singleton.LocalClientId;
                 ComprarPuertaServerRpc(miDNI);
@@ -40,7 +40,7 @@ public class PuertaDesbloqueable : NetworkBehaviour
 
             if (uiManagerLocal != null)
             {
-                uiManagerLocal.MostrarTextoInteraccion($"Pulsa 'F' para abrir el paso a {nombreZona} [Coste: {coste} pts]");
+                uiManagerLocal.MostrarTextoInteraccion($"Pulsa 'E' para abrir el paso a {nombreZona} [Coste: {coste} pts]");
             }
         }
     }

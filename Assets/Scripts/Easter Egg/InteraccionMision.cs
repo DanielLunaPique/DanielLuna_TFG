@@ -3,7 +3,14 @@ using Unity.Netcode;
 
 public class InteraccionMision : NetworkBehaviour
 {
+    [Header("Configuración de Misión")]
     public string idMisionAsociada = "Energia";
+
+    [Header("Feedback (Opcional)")]
+    [Tooltip("¿El objeto debe desaparecer al cogerlo? (Sí para Tarjeta, No para Generador)")]
+    public bool destruirAlCompletar = false;
+    public AudioClip sonidoInteraccion;
+
     private bool jugadorCerca = false;
     private UIManager uiLocalJugador;
 
@@ -11,13 +18,12 @@ public class InteraccionMision : NetworkBehaviour
     {
         if (other.CompareTag("Player") && other.GetComponent<NetworkObject>().IsOwner)
         {
-            // Solo intentamos mostrar si es el paso correcto
             if (QuestManager.Instance.idPasoActual.Value.ToString() == idMisionAsociada)
             {
                 jugadorCerca = true;
                 uiLocalJugador = other.GetComponentInChildren<UIManager>();
                 if (uiLocalJugador != null)
-                    uiLocalJugador.MostrarTextoInteraccion($"Pulsa [E] para {idMisionAsociada}");
+                    uiLocalJugador.MostrarTextoInteraccion($"Pulsa [E] para interactuar");
             }
         }
     }
@@ -33,7 +39,6 @@ public class InteraccionMision : NetworkBehaviour
 
     private void Update()
     {
-        // SEGURIDAD: Si el paso cambia mientras estamos cerca, ocultamos el texto
         if (jugadorCerca && QuestManager.Instance.idPasoActual.Value.ToString() != idMisionAsociada)
         {
             jugadorCerca = false;
@@ -44,6 +49,13 @@ public class InteraccionMision : NetworkBehaviour
         if (jugadorCerca && Input.GetKeyDown(KeyCode.E))
         {
             if (uiLocalJugador != null) uiLocalJugador.OcultarTextoInteraccion();
+
+            // Reproducimos el sonido LOCALMENTE justo en el momento de pulsar para que no haya lag
+            if (sonidoInteraccion != null)
+            {
+                AudioSource.PlayClipAtPoint(sonidoInteraccion, transform.position, 1f);
+            }
+
             CompletarAccionServerRpc();
         }
     }
@@ -52,5 +64,11 @@ public class InteraccionMision : NetworkBehaviour
     private void CompletarAccionServerRpc()
     {
         QuestManager.Instance.NotificarPasoCompletadoServerRpc(idMisionAsociada);
+
+        // Si es una tarjeta o pata de cabra, el servidor ordena a todos destruirla
+        if (destruirAlCompletar)
+        {
+            GetComponent<NetworkObject>().Despawn(true);
+        }
     }
 }
