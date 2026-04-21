@@ -69,6 +69,12 @@ public class EllersMazeGenerator : MonoBehaviour
 
     void Start()
     {
+        // Nos suscribimos al evento de "Servidor Iniciado" para construir el mapa en el momento correcto
+        if (Unity.Netcode.NetworkManager.Singleton != null)
+        {
+            Unity.Netcode.NetworkManager.Singleton.OnServerStarted += IniciarGeneracionLaberinto;
+        }
+
         gridXZ = gridSpawner.grid; 
         
         logicalMap = new CellData[gridSpawner.width, gridSpawner.height];
@@ -85,7 +91,10 @@ public class EllersMazeGenerator : MonoBehaviour
         propsContainer = new GameObject("--- PROPS ---").transform;
 
         SpawnEllersMaze();
+    }
 
+    private void IniciarGeneracionLaberinto()
+    {
         ScanForDeadEnds();
 
         DecorateMaze();
@@ -387,27 +396,6 @@ public class EllersMazeGenerator : MonoBehaviour
         }
     }
 
-    private void WorldText_Row(List<(int[], int)> row, Color textColor, int yVal)
-    {
-        GameObject rowObj = new GameObject();
-        foreach(var cellTup in row)
-        {
-            var coords = cellTup.Item1;
-            var set = cellTup.Item2;
-
-            var text = new GameObject();
-            var mesh = text.AddComponent<TextMesh>();
-            mesh.text = set.ToString();
-            mesh.color = textColor;
-
-            Vector3 gridPos = gridXZ.GetWorldPosition(coords[0], coords[1]);
-            gridPos = new Vector3(gridPos.x + gridXZ.GetCellSize() / 2, yVal, gridPos.z + gridXZ.GetCellSize() / 2);
-            text.transform.position = gridPos;
-            text.transform.parent = rowObj.transform;
-        }
-    }
-
-
     private bool IsInBounds(int x, int z)
     {
         return x >= 0 && x < gridSpawner.width && z >= 0 && z < gridSpawner.height;
@@ -604,7 +592,66 @@ public class EllersMazeGenerator : MonoBehaviour
 
         GameObject newHangar = GameObject.Instantiate(hangar, centerPos, rotation);
 
+        if (Unity.Netcode.NetworkManager.Singleton.IsServer)
+        {
+            newHangar.GetComponent<Unity.Netcode.NetworkObject>().Spawn(true);
+        }
+
         generatedHangars.Add(newHangar.transform);
+    }
+
+    public Vector3 ObtenerCentroDelLaberinto()
+    {
+        int centroX = gridSpawner.width / 2;
+        int centroZ = gridSpawner.height / 2;
+
+        // Búsqueda en espiral: vamos ampliando el radio de búsqueda desde el centro hacia afuera
+        int radioMaximo = Mathf.Max(gridSpawner.width, gridSpawner.height);
+
+        for (int r = 0; r <= radioMaximo; r++)
+        {
+            for (int x = centroX - r; x <= centroX + r; x++)
+            {
+                for (int z = centroZ - r; z <= centroZ + r; z++)
+                {
+                    // Solo comprobamos el "borde" del anillo actual para no repetir celdas
+                    if (Mathf.Abs(x - centroX) == r || Mathf.Abs(z - centroZ) == r)
+                    {
+                        // Si la celda está dentro del mapa y NO tiene un hangar...
+                        if (IsInBounds(x, z) && !HayHangarEnCelda(x, z))
+                        {
+                            Vector3 posicionBase = gridXZ.GetWorldPosition(x, z);
+                            float cellSize = gridXZ.GetCellSize();
+
+                            // ¡Encontramos la celda central perfecta y libre!
+                            return new Vector3(posicionBase.x + (cellSize / 2f), yValue, posicionBase.z + (cellSize / 2f));
+                        }
+                    }
+                }
+            }
+        }
+
+        // Fallback de seguridad (nunca debería llegar aquí, pero por si acaso)
+        Vector3 fallback = gridXZ.GetWorldPosition(centroX, centroZ);
+        return new Vector3(fallback.x + (gridXZ.GetCellSize() / 2f), yValue, fallback.z + (gridXZ.GetCellSize() / 2f));
+    }
+
+    // Función auxiliar para saber si una celda específica está pisada por un hangar
+    private bool HayHangarEnCelda(int x, int z)
+    {
+        Vector3 posCelda = gridXZ.GetWorldPosition(x, z);
+        float cellSize = gridXZ.GetCellSize();
+        Vector3 centroCelda = new Vector3(posCelda.x + (cellSize / 2f), yValue, posCelda.z + (cellSize / 2f));
+
+        foreach (Transform h in generatedHangars)
+        {
+            // Si la distancia entre el centro de la celda y el hangar es menor al tamaño de la celda, está ocupada
+            if (Vector3.Distance(centroCelda, h.position) < cellSize * 0.8f)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void DecorateMaze()
@@ -684,6 +731,15 @@ public class EllersMazeGenerator : MonoBehaviour
                     }
                 }
             }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Limpiamos el evento por seguridad cuando cerremos el juego
+        if (Unity.Netcode.NetworkManager.Singleton != null)
+        {
+            Unity.Netcode.NetworkManager.Singleton.OnServerStarted -= IniciarGeneracionLaberinto;
         }
     }
 

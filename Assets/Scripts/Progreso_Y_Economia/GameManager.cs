@@ -163,8 +163,6 @@ public class GameManager : NetworkBehaviour
         // Actualizamos números
         zombiesPorGenerar.Value--;
         zombiesVivos.Value++;
-
-        Debug.Log($"[GameManager] Zombie generado. Faltan por salir: {zombiesPorGenerar.Value}");
     }
 
     public void ZombieEliminado()
@@ -174,7 +172,6 @@ public class GameManager : NetworkBehaviour
         zombiesVivos.Value--;
         if(zombiesVivos.Value <= 0 && zombiesPorGenerar.Value <= 0)
         {
-            Debug.Log("[GameManager] ¡Ronda superada!");
             StartCoroutine(IniciarSiguienteRonda());
         }
     }

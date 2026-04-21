@@ -1,0 +1,832 @@
+fileFormatVersion: 2
+guid: 3564a6eb21218894495c302a5c03e445
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_0
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 237
+        width: 35
+        height: 29
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3b3fc7eb21272a4397b5064a7331e3e
+      internalID: 887034546
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_1
+      rect:
+        serializedVersion: 2
+        x: 54
+        y: 233
+        width: 44
+        height: 36
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0347fcfc83f45174dbad2fb9aec7218d
+      internalID: 1104220795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_2
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 240
+        width: 35
+        height: 30
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e394617df2cbf43458a7cc78cb6e9750
+      internalID: -1927331060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_3
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 234
+        width: 33
+        height: 34
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 88af0924d82be8641ac4b4088d417a6c
+      internalID: 835455704
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_4
+      rect:
+        serializedVersion: 2
+        x: 194
+        y: 236
+        width: 33
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e347729041fc68741b86a2e54e933ff4
+      internalID: -2032777573
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_5
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 193
+        width: 38
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3b65418e63456c04d8c94ead8cffbbb6
+      internalID: -746912152
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_6
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 193
+        width: 27
+        height: 28
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8f749051ae3418047b41cee7804dab67
+      internalID: 1588238801
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_7
+      rect:
+        serializedVersion: 2
+        x: 103
+        y: 193
+        width: 34
+        height: 35
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 96947b4f8e1209044b7f98c75c65471d
+      internalID: -800677364
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_8
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 193
+        width: 44
+        height: 37
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8102193400e33aa489dbdc4dbf4ca3a4
+      internalID: 299872187
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_9
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 198
+        width: 25
+        height: 25
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b8f454158a297e64caa9059bedbc2d21
+      internalID: -337708875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_10
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 151
+        width: 35
+        height: 35
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bee5b48a11faa3242b606f97e8019587
+      internalID: 1022634570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_11
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 154
+        width: 27
+        height: 29
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c6f2a9e5c0e726641b25606504d56afa
+      internalID: -1158433331
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_12
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 152
+        width: 41
+        height: 33
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b3ab160430367454ebc872610bc214d1
+      internalID: -537532934
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_13
+      rect:
+        serializedVersion: 2
+        x: 155
+        y: 152
+        width: 25
+        height: 33
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 308553631de4a34459775e6f05a72a73
+      internalID: 856132287
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_14
+      rect:
+        serializedVersion: 2
+        x: 193
+        y: 152
+        width: 33
+        height: 33
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c5993544b0d637c4f93fa44dc8513194
+      internalID: -1013534824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_15
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 110
+        width: 34
+        height: 37
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fe41947f7142a824394a0ccbff3177b1
+      internalID: -366203084
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_16
+      rect:
+        serializedVersion: 2
+        x: 61
+        y: 112
+        width: 33
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 215335572556adc489b500f1110e3f9e
+      internalID: -368664879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_17
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 112
+        width: 34
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c24e5ec464b15c54187e45c654911093
+      internalID: -491493934
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_18
+      rect:
+        serializedVersion: 2
+        x: 148
+        y: 113
+        width: 29
+        height: 30
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bc46581896b3e194aab04105bb5e4a15
+      internalID: -1844104881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_19
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 110
+        width: 36
+        height: 36
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2ab3820790267d348a5fd3dbfc21ff50
+      internalID: -901652228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_20
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 70
+        width: 36
+        height: 34
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 709ae7e52b72e1540adb6a2792f7caa9
+      internalID: 2050764632
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_21
+      rect:
+        serializedVersion: 2
+        x: 58
+        y: 71
+        width: 38
+        height: 37
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1225a90b48409b6498a6f97d0446d125
+      internalID: 1022245548
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_22
+      rect:
+        serializedVersion: 2
+        x: 105
+        y: 72
+        width: 28
+        height: 35
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1d059ea60174f304a922b5cbdf47aacb
+      internalID: 1607097962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_23
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 71
+        width: 37
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1b90be3d3b161ba41a3292e63707f1b4
+      internalID: 991310616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_24
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 71
+        width: 36
+        height: 34
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e3a4a0f1538aa2242938e2252a19d92d
+      internalID: -925639037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_25
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 31
+        width: 31
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5b02082d974018347992c4842b64d347
+      internalID: -389688959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_26
+      rect:
+        serializedVersion: 2
+        x: 60
+        y: 37
+        width: 28
+        height: 27
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5cd8a7aa46496c04290c0ddc10ff4828
+      internalID: -1900567146
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_27
+      rect:
+        serializedVersion: 2
+        x: 106
+        y: 33
+        width: 33
+        height: 29
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6bf18db98753fa94c9b57eccc981d33e
+      internalID: -843934090
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_28
+      rect:
+        serializedVersion: 2
+        x: 149
+        y: 32
+        width: 34
+        height: 34
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0fcf593b694b6a5459bf52644372d99a
+      internalID: 546876427
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_29
+      rect:
+        serializedVersion: 2
+        x: 190
+        y: 30
+        width: 37
+        height: 38
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0cf984c7e4480c94ca2ac131b3caee05
+      internalID: 361734377
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_30
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 3
+        width: 157
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a5892996489275e45b91662479ee6686
+      internalID: 163146936
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 6d3bc03c9bf7dca40af54f47bd4657ee
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_0: 887034546
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_1: 1104220795
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_10: 1022634570
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_11: -1158433331
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_12: -537532934
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_13: 856132287
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_14: -1013534824
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_15: -366203084
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_16: -368664879
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_17: -491493934
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_18: -1844104881
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_19: -901652228
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_2: -1927331060
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_20: 2050764632
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_21: 1022245548
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_22: 1607097962
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_23: 991310616
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_24: -925639037
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_25: -389688959
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_26: -1900567146
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_27: -843934090
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_28: 546876427
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_29: 361734377
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_3: 835455704
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_30: 163146936
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_4: -2032777573
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_5: -746912152
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_6: 1588238801
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_7: -800677364
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_8: 299872187
+      bullet-marks-gunshot-weapons-impact-260nw-2288502397-removebg-preview_9: -337708875
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
