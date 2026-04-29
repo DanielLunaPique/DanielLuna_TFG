@@ -67,6 +67,14 @@ public class EllersMazeGenerator : MonoBehaviour
     private int max_set_val = 1;
     private float yValue = 5.57f;
 
+    public static EllersMazeGenerator Instance;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(this.gameObject); return; }
+        Instance = this;
+    }
+
     void Start()
     {
         // Nos suscribimos al evento de "Servidor Iniciado" para construir el mapa en el momento correcto
@@ -602,10 +610,17 @@ public class EllersMazeGenerator : MonoBehaviour
 
     public Vector3 ObtenerCentroDelLaberinto()
     {
+        // 1. Pedimos el Grid de forma segura
+        Custom_Grid gridSeguro = ObtenerGrid();
+        
+        if (gridSeguro == null)
+        {
+            Debug.LogError("[LABERINTO] ERROR GRAVE: El Grid Físico es nulo justo antes de calcular el centro. El spawner ha perdido el mapa.");
+            return Vector3.zero; // Devolvemos el centro del mundo para que no crashee
+        }
+
         int centroX = gridSpawner.width / 2;
         int centroZ = gridSpawner.height / 2;
-
-        // Búsqueda en espiral: vamos ampliando el radio de búsqueda desde el centro hacia afuera
         int radioMaximo = Mathf.Max(gridSpawner.width, gridSpawner.height);
 
         for (int r = 0; r <= radioMaximo; r++)
@@ -614,16 +629,14 @@ public class EllersMazeGenerator : MonoBehaviour
             {
                 for (int z = centroZ - r; z <= centroZ + r; z++)
                 {
-                    // Solo comprobamos el "borde" del anillo actual para no repetir celdas
                     if (Mathf.Abs(x - centroX) == r || Mathf.Abs(z - centroZ) == r)
                     {
-                        // Si la celda está dentro del mapa y NO tiene un hangar...
                         if (IsInBounds(x, z) && !HayHangarEnCelda(x, z))
                         {
-                            Vector3 posicionBase = gridXZ.GetWorldPosition(x, z);
-                            float cellSize = gridXZ.GetCellSize();
+                            // 2. Usamos gridSeguro en lugar de gridXZ
+                            Vector3 posicionBase = gridSeguro.GetWorldPosition(x, z);
+                            float cellSize = gridSeguro.GetCellSize();
 
-                            // ¡Encontramos la celda central perfecta y libre!
                             return new Vector3(posicionBase.x + (cellSize / 2f), yValue, posicionBase.z + (cellSize / 2f));
                         }
                     }
@@ -631,25 +644,24 @@ public class EllersMazeGenerator : MonoBehaviour
             }
         }
 
-        // Fallback de seguridad (nunca debería llegar aquí, pero por si acaso)
-        Vector3 fallback = gridXZ.GetWorldPosition(centroX, centroZ);
-        return new Vector3(fallback.x + (gridXZ.GetCellSize() / 2f), yValue, fallback.z + (gridXZ.GetCellSize() / 2f));
+        // Fallback de seguridad usando gridSeguro
+        Vector3 fallback = gridSeguro.GetWorldPosition(centroX, centroZ);
+        return new Vector3(fallback.x + (gridSeguro.GetCellSize() / 2f), yValue, fallback.z + (gridSeguro.GetCellSize() / 2f));
     }
 
-    // Función auxiliar para saber si una celda específica está pisada por un hangar
     private bool HayHangarEnCelda(int x, int z)
     {
-        Vector3 posCelda = gridXZ.GetWorldPosition(x, z);
-        float cellSize = gridXZ.GetCellSize();
+        Custom_Grid gridSeguro = ObtenerGrid();
+        if (gridSeguro == null) return false;
+
+        Vector3 posCelda = gridSeguro.GetWorldPosition(x, z);
+        float cellSize = gridSeguro.GetCellSize();
         Vector3 centroCelda = new Vector3(posCelda.x + (cellSize / 2f), yValue, posCelda.z + (cellSize / 2f));
 
         foreach (Transform h in generatedHangars)
         {
-            // Si la distancia entre el centro de la celda y el hangar es menor al tamaño de la celda, está ocupada
-            if (Vector3.Distance(centroCelda, h.position) < cellSize * 0.8f)
-            {
-                return true;
-            }
+            if (h == null) continue;
+            if (Vector3.Distance(centroCelda, h.position) < cellSize * 0.8f) return true;
         }
         return false;
     }
@@ -747,6 +759,12 @@ public class EllersMazeGenerator : MonoBehaviour
     {
         return logicalMap;
     }
-        
+
+    public Custom_Grid ObtenerGrid()
+    {
+        if (gridXZ == null && gridSpawner != null) gridXZ = gridSpawner.grid;
+        return gridXZ;
+    }
+
     #endregion
 }

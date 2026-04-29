@@ -138,6 +138,7 @@ GameObject:
   - component: {fileID: 5580006502352687958}
   - component: {fileID: 5580006502367032662}
   - component: {fileID: 5580006502358982262}
+  - component: {fileID: 861430300496443438}
   m_Layer: 0
   m_Name: PowerUp
   m_TagString: Untagged
@@ -252,6 +253,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotationSpeed: 65
   reverse: 0
+--- !u!114 &861430300496443438
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5580006502365031314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4bf708a26f9cba4eb43ecf85f11e6c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EfectoFlotar
+  velocidadRotacion: 45
+  amplitudFlote: 0.2
+  velocidadFlote: 2
 --- !u!1 &5580006502365031324
 GameObject:
   m_ObjectHideFlags: 0
@@ -265,6 +281,7 @@ GameObject:
   - component: {fileID: 5580006502352687956}
   - component: {fileID: 5580006502367032660}
   - component: {fileID: 5580006502358982260}
+  - component: {fileID: 2218953230150037204}
   m_Layer: 0
   m_Name: InnerPowerUp
   m_TagString: Untagged
@@ -379,6 +396,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotationSpeed: 65
   reverse: 1
+--- !u!114 &2218953230150037204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5580006502365031324}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4bf708a26f9cba4eb43ecf85f11e6c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EfectoFlotar
+  velocidadRotacion: 45
+  amplitudFlote: 0.2
+  velocidadFlote: 2
 --- !u!1001 &8315219239674239529
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -466,10 +498,33 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 100000, guid: 234dc7ebff095244b948288a5886c5da, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7261266333065278035}
   m_SourcePrefab: {fileID: 100100000, guid: 234dc7ebff095244b948288a5886c5da, type: 3}
 --- !u!4 &8315219239673839785 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: 234dc7ebff095244b948288a5886c5da, type: 3}
   m_PrefabInstance: {fileID: 8315219239674239529}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &8315219239674272905 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100000, guid: 234dc7ebff095244b948288a5886c5da, type: 3}
+  m_PrefabInstance: {fileID: 8315219239674239529}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7261266333065278035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8315219239674272905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4bf708a26f9cba4eb43ecf85f11e6c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EfectoFlotar
+  velocidadRotacion: 45
+  amplitudFlote: 0.2
+  velocidadFlote: 2

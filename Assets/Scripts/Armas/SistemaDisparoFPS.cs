@@ -1,3 +1,4 @@
+using Unity.Burst.CompilerServices;
 using Unity.VisualScripting;
 using UnityEngine;
 using static EstadisticasArma;
@@ -120,6 +121,7 @@ public class SistemaDisparoFPS : MonoBehaviour
             // 2. Recorremos todo lo que ha atravesado la bala, del más cercano al más lejano
             foreach (RaycastHit impacto in impactos)
             {
+                Debug.Log($"[ARMA] La bala ha chocado contra un objeto llamado: {impacto.collider.gameObject.name}");
                 //Ahora buscamos la ParteDelCuerpo, no al Zombie entero
                 ParteDelCuerpo hitbox = impacto.collider.GetComponent<ParteDelCuerpo>();
 
@@ -142,8 +144,22 @@ public class SistemaDisparoFPS : MonoBehaviour
                         break;
                     }
                 }
+
+                else if (impacto.collider.TryGetComponent(out Diana diana))
+                {
+                    // Llamamos a la función que programamos antes
+                    Debug.Log("[ARMA] ¡Es una diana! Enviando orden al servidor...");
+                    diana.RecibirDisparoServerRpc();
+                }
+
+                else if (impacto.collider.TryGetComponent(out PiedraRuna runa))
+                {
+                    runa.RecibirDisparoServerRpc();
+                }
+
                 else
                 {
+                    Debug.LogWarning("[ARMA] Lo que he golpeado NO tiene el script 'Diana' puesto.");
                     // Si NO es un zombie (es una pared, suelo, etc.)
                     if (prefabAgujeroBala != null)
                     {

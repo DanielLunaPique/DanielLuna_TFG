@@ -30,30 +30,68 @@ public class AStarPathfinding
     // Método principal: Calcula el camino
     public static List<Vector3> FindPath(Vector3 startWorldPos, Vector3 targetWorldPos, CellData[,] map, Custom_Grid grid)
     {
-        // 1. Convertir posiciones de mundo a coordenadas de grid (x, z)
+        if (grid == null || map == null)
+        {
+            Debug.LogWarning("A*: Abortado. El Grid o el Mapa son nulos.");
+            return null;
+        }
+
         int[] start = grid.GetXZ(startWorldPos);
         int[] target = grid.GetXZ(targetWorldPos);
 
-        // Validaciones básicas
-        if (map == null || start[0] < 0 || target[0] < 0) return null;
+        if (start == null || target == null || start.Length < 2 || target.Length < 2)
+        {
+            Debug.LogWarning($"A*: Abortado. Coordenadas GetXZ fallaron. Start: {(start != null ? "OK" : "NULL")}, Target: {(target != null ? "OK" : "NULL")}");
+            return null;
+        }
+
+        int width = map.GetLength(0);
+        int height = map.GetLength(1);
+
+        // Chivato 1: ¿Estamos fuera del mapa?
+        if (start[0] < 0 || start[0] >= width || start[1] < 0 || start[1] >= height)
+        {
+            Debug.LogWarning($"A*: Abortado. El INICIO ({start[0]},{start[1]}) está fuera de los límites del mapa ({width}x{height})");
+            return null;
+        }
+        if (target[0] < 0 || target[0] >= width || target[1] < 0 || target[1] >= height)
+        {
+            Debug.LogWarning($"A*: Abortado. El DESTINO ({target[0]},{target[1]}) está fuera de los límites del mapa ({width}x{height})");
+            return null;
+        }
+
+        // Chivato 2: ¿Nacemos en un agujero vacío?
+        if (map[start[0], start[1]] == null)
+        {
+            Debug.LogWarning($"A*: Abortado. La celda de INICIO es nula (no hay suelo lógico ahí).");
+            return null;
+        }
 
         Node startNode = new Node(start[0], start[1], map[start[0], start[1]]);
         Node targetNode = new Node(target[0], target[1], map[target[0], target[1]]);
 
         List<Node> openSet = new List<Node>();
         HashSet<Node> closedSet = new HashSet<Node>();
-        
-        // Mapeo para buscar nodos rápidamente por coordenada
-        Node[,] allNodes = new Node[map.GetLength(0), map.GetLength(1)];
-        for (int i = 0; i < map.GetLength(0); i++)
-            for (int j = 0; j < map.GetLength(1); j++)
-                allNodes[i, j] = new Node(i, j, map[i, j]);
+
+        Node[,] allNodes = new Node[width, height];
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++)
+                if (map[i, j] != null)
+                    allNodes[i, j] = new Node(i, j, map[i, j]);
 
         openSet.Add(allNodes[start[0], start[1]]);
 
+        int frenoDeEmergencia = 0;
+
         while (openSet.Count > 0)
         {
-            // Buscar nodo con menor FCost
+            frenoDeEmergencia++;
+            if (frenoDeEmergencia > 3000)
+            {
+                Debug.LogError("A*: BUCLE INFINITO. Destino inalcanzable, forzando parada de emergencia.");
+                return null;
+            }
+
             Node currentNode = openSet[0];
             for (int i = 1; i < openSet.Count; i++)
             {
@@ -66,18 +104,16 @@ public class AStarPathfinding
             openSet.Remove(currentNode);
             closedSet.Add(currentNode);
 
-            // Si llegamos al destino
             if (currentNode.x == target[0] && currentNode.z == target[1])
             {
                 return RetracePath(allNodes[start[0], start[1]], currentNode, grid);
             }
 
-            // Revisar vecinos
-            foreach (Node neighbor in GetNeighbors(currentNode, allNodes, map.GetLength(0), map.GetLength(1)))
+            foreach (Node neighbor in GetNeighbors(currentNode, allNodes, width, height))
             {
                 if (closedSet.Contains(neighbor)) continue;
 
-                int newMovementCostToNeighbor = currentNode.gCost + 10; // Coste fijo de 10 por movimiento
+                int newMovementCostToNeighbor = currentNode.gCost + 10;
                 if (newMovementCostToNeighbor < neighbor.gCost || !openSet.Contains(neighbor))
                 {
                     neighbor.gCost = newMovementCostToNeighbor;
@@ -90,7 +126,9 @@ public class AStarPathfinding
             }
         }
 
-        return null; // No se encontró camino
+        // Chivato 3: Se exploró todo pero no hay salida
+        Debug.LogWarning("A*: Se exploraron todos los caminos posibles y NO HAY RUTA al destino. (Laberinto bloqueado o sin conexión).");
+        return null;
     }
 
     private static List<Node> GetNeighbors(Node node, Node[,] allNodes, int width, int height)

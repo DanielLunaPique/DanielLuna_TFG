@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Custom_Grid : MonoBehaviour
+public class Custom_Grid 
 {
     private int width;
     private int height;
