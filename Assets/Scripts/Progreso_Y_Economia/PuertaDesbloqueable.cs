@@ -7,6 +7,12 @@ public class PuertaDesbloqueable : NetworkBehaviour
     public string nombreZona;
     public int coste = 1000;
 
+    [Header("Bloqueo por Misión (Easter Egg)")]
+    [Tooltip("¿Esta puerta está bloqueada hasta cierto punto de la partida?")]
+    public bool requierePasoHistoria = false;
+    [Tooltip("El índice de la Línea de Tiempo en el que se desbloquea esta puerta (Ej: 2)")]
+    public int indiceTimelineDesbloqueo = 2;
+
     [Header("Conexión de Zonas")]
     public ZonaZombies[] zonasADesbloquear;
 
@@ -21,6 +27,13 @@ public class PuertaDesbloqueable : NetworkBehaviour
         {
             if (Input.GetKeyDown(KeyCode.E))
             {
+                // ESCUDO: Si está bloqueada por la historia, ignoramos el botón "E" por completo
+                if (EstaBloqueadaPorHistoria())
+                {
+                    // Opcional: Aquí podrías reproducir un sonido de "Error/Acceso Denegado"
+                    return;
+                }
+
                 ulong miDNI = NetworkManager.Singleton.LocalClientId;
                 ComprarPuertaServerRpc(miDNI);
             }
@@ -31,7 +44,6 @@ public class PuertaDesbloqueable : NetworkBehaviour
     {
         if (estaAbierta.Value) return;
 
-        // Usamos GetComponentInParent porque el collider suele colgar de la raíz del Player
         NetworkObject netObj = other.GetComponentInParent<NetworkObject>();
         if (netObj != null && netObj.IsLocalPlayer)
         {
@@ -40,14 +52,22 @@ public class PuertaDesbloqueable : NetworkBehaviour
 
             if (uiManagerLocal != null)
             {
-                uiManagerLocal.MostrarTextoInteraccion($"Pulsa 'E' para abrir el paso a {nombreZona} [Coste: {coste} pts]");
+                // Verificamos si la puerta está bloqueada por el Easter Egg
+                if (EstaBloqueadaPorHistoria())
+                {
+                    MostrarTextoDeBloqueo();
+                }
+                else
+                {
+                    // Si no está bloqueada (o ya hemos pasado esa fase), mostramos la compra normal
+                    uiManagerLocal.MostrarTextoInteraccion($"Pulsa [E] para abrir el paso a {nombreZona} [Coste: {coste} pts]");
+                }
             }
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        // Corregido: GetComponentInParent igual que en el Enter
         NetworkObject netObj = other.GetComponentInParent<NetworkObject>();
         if (netObj != null && netObj.IsLocalPlayer)
         {
@@ -60,6 +80,35 @@ public class PuertaDesbloqueable : NetworkBehaviour
             }
         }
     }
+
+    // --- FUNCIONES DE LÓGICA DE HISTORIA ---
+
+    private bool EstaBloqueadaPorHistoria()
+    {
+        if (!requierePasoHistoria || QuestManager.Instance == null) return false;
+
+        // Retorna TRUE si nuestro nivel en la partida es menor al que pide la puerta
+        return QuestManager.Instance.indiceTimeline.Value < indiceTimelineDesbloqueo;
+    }
+
+    private void MostrarTextoDeBloqueo()
+    {
+        string misionActual = QuestManager.Instance.idPasoActual.Value.ToString();
+        string textoRechazo = "<color=red>[ACCESO DENEGADO]</color> ";
+
+        if (misionActual == "Tarjeta")
+            textoRechazo += "Se requiere Tarjeta de Acceso.";
+        else if (misionActual == "Hackeo")
+            textoRechazo += "Se requiere Anulación de Seguridad.";
+        else if (misionActual == "BuscarPiezas")
+            textoRechazo += "Encuentra las piezas del bastón primero.";
+        else
+            textoRechazo += "Sistemas de energía inestables.";
+
+        uiManagerLocal.MostrarTextoInteraccion(textoRechazo);
+    }
+
+    // --- FUNCIONES DE RED ---
 
     [ServerRpc(RequireOwnership = false)]
     public void ComprarPuertaServerRpc(ulong idComprador)
@@ -76,21 +125,14 @@ public class PuertaDesbloqueable : NetworkBehaviour
         {
             estaAbierta.Value = true;
 
-            // ==========================================
-            // LO QUE SE ME OLVIDÓ: ¡ACTIVAR LAS ZONAS!
-            // ==========================================
             foreach (ZonaZombies zona in zonasADesbloquear)
             {
                 if (zona != null)
                 {
-                    // AQUÍ TIENES QUE PONER TU VARIABLE O FUNCIÓN REAL
-                    // Dependiendo de cómo hiciste el script ZonaZombies, será algo así:
                     zona.estaActiva = true;
-                    // o quizás: zona.ActivarZona();
                 }
             }
 
-            // El Servidor destruye la puerta. Esto disparará OnNetworkDespawn en todos lados.
             NetworkObject netObj = GetComponent<NetworkObject>();
             if (netObj != null && netObj.IsSpawned)
             {
@@ -99,12 +141,8 @@ public class PuertaDesbloqueable : NetworkBehaviour
         }
     }
 
-    // ==========================================
-    // LA SOLUCIÓN: Limpieza justo antes de morir
-    // ==========================================
     public override void OnNetworkDespawn()
     {
-        // Esto se ejecuta localmente en el Cliente justo antes de que la puerta desaparezca
         if (uiManagerLocal != null)
         {
             uiManagerLocal.OcultarTextoInteraccion();

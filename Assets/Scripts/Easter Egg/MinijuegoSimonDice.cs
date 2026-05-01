@@ -142,6 +142,11 @@ public class MinijuegoSimonDice : NetworkBehaviour
                 {
                     Debug.Log("[SimonDice] ¡HACKEO COMPLETADO!");
                     QuestManager.Instance.NotificarPasoCompletadoServerRpc(idMisionAsociada);
+                    GestorPuzzleRunas gestorRunas = FindObjectOfType<GestorPuzzleRunas>();
+                    if (gestorRunas != null)
+                    {
+                        gestorRunas.ActivarPuzzle();
+                    }
                     estadoActual = EstadoSimon.Inactivo;
                 }
                 else

@@ -5,80 +5,62 @@ using System.Linq;
 
 public class GestorPuzzleRunas : NetworkBehaviour
 {
-    [Header("Configuración del Puzzle")]
-    public PiedraRuna[] todasLasPiedras; // Arrastra las 8 piedras aquí
-    public GameObject prefabPiezaBaston; // El prefab de la pieza final
+    [Header("Configuración")]
+    public List<PiedraRuna> listaPiedras = new List<PiedraRuna>();
+    public GameObject prefabPiezaBaston;
     public Transform puntoAparicionPieza;
 
-    // Lista de símbolos rúnicos (Puedes cambiarlos por los que más te gusten)
-    public readonly string[] listaSimbolos = { "ᚠ", "ᚢ", "ᚦ", "ᚨ", "ᚱ", "ᚲ", "ᚷ", "ᚹ" };
-
-    [Header("Estado de Red")]
-    public NetworkVariable<bool> puzzleCompletado = new NetworkVariable<bool>(false);
-
-    // Variables internas del servidor
-    private List<int> combinacionCorrecta = new List<int>();
+    private List<PiedraRuna> combinacionCorrecta = new List<PiedraRuna>();
     private int pasoActual = 0;
+
+    public NetworkVariable<bool> puzzleActivo = new NetworkVariable<bool>(false);
+    public NetworkVariable<bool> puzzleCompletado = new NetworkVariable<bool>(false);
 
     public override void OnNetworkSpawn()
     {
         if (IsServer)
         {
-            GenerarPuzzleAleatorio();
+            GenerarCombinacion();
         }
     }
 
-    private void GenerarPuzzleAleatorio()
+    // Llama a esta función desde el script de tu Easter Egg cuando toque este paso
+    public void ActivarPuzzle()
     {
-        // 1. Barajamos los índices de los símbolos (0 al 7)
-        List<int> indicesDisponibles = new List<int> { 0, 1, 2, 3, 4, 5, 6, 7 };
+        if (!IsServer || puzzleActivo.Value) return;
+
+        puzzleActivo.Value = true;
+
+        // Hacemos visibles todas las piedras en la red
+        foreach (var piedra in listaPiedras)
+        {
+            if (piedra != null) piedra.piedraVisible.Value = true;
+        }
+
+        Debug.Log("<color=yellow>[PUZZLE RUNAS] Puzzle activado. ¡Las piedras han aparecido!</color>");
+    }
+
+    private void GenerarCombinacion()
+    {
+        // Elegimos 3 piedras al azar de la lista como la solución correcta
         var rng = new System.Random();
-        indicesDisponibles = indicesDisponibles.OrderBy(a => rng.Next()).ToList();
+        var piedrasBarajadas = listaPiedras.OrderBy(a => rng.Next()).ToList();
 
-        // 2. Asignamos un símbolo único a cada piedra en el mapa
-        for (int i = 0; i < todasLasPiedras.Length; i++)
-        {
-            if (todasLasPiedras[i] != null)
-            {
-                todasLasPiedras[i].indiceSimbologia.Value = indicesDisponibles[i];
-                todasLasPiedras[i].estadoBrillo.Value = 0;
-            }
-        }
+        combinacionCorrecta = piedrasBarajadas.Take(3).ToList();
 
-        // 3. Elegimos 3 piedras al azar para que sean la combinación correcta
-        List<PiedraRuna> piedrasBarajadas = todasLasPiedras.OrderBy(a => rng.Next()).ToList();
-        combinacionCorrecta.Clear();
-
-        for (int i = 0; i < 3; i++)
-        {
-            combinacionCorrecta.Add(piedrasBarajadas[i].indiceSimbologia.Value);
-        }
-
-        pasoActual = 0;
-
-        // EL CHIVATO PARA LA CONSOLA (Para que tú sepas la clave)
-        string clave = $"1º[{listaSimbolos[combinacionCorrecta[0]]}] - " +
-                       $"2º[{listaSimbolos[combinacionCorrecta[1]]}] - " +
-                       $"3º[{listaSimbolos[combinacionCorrecta[2]]}]";
-        Debug.Log($"<color=cyan>[PUZZLE RUNAS] La combinación secreta es: {clave}</color>");
+        // Chivato en consola (usa el nombre del GameObject de la piedra para que sepas cuáles son)
+        Debug.Log($"<color=cyan>[PUZZLE RUNAS] La combinación correcta es: 1º[{combinacionCorrecta[0].gameObject.name}], 2º[{combinacionCorrecta[1].gameObject.name}], 3º[{combinacionCorrecta[2].gameObject.name}]</color>");
     }
 
-    // Esta función la llama la piedra cuando le disparas
-    public void ComprobarDisparoServer(PiedraRuna runaDisparada)
+    public void ComprobarDisparoServer(PiedraRuna piedraDisparada)
     {
-        if (!IsServer || puzzleCompletado.Value) return;
+        if (!IsServer || !puzzleActivo.Value || puzzleCompletado.Value) return;
 
-        int simboloDisparado = runaDisparada.indiceSimbologia.Value;
-
-        // ¿Ha acertado el paso actual?
-        if (simboloDisparado == combinacionCorrecta[pasoActual])
+        // Comprobamos si la piedra disparada es la que toca en el paso actual
+        if (piedraDisparada == combinacionCorrecta[pasoActual])
         {
-            Debug.Log($"[PUZZLE RUNAS] ¡Acierto! Paso {pasoActual + 1}/3 completado.");
-            runaDisparada.estadoBrillo.Value = 1; // Se queda encendida en Dorado
+            piedraDisparada.estadoBrillo.Value = 1; // Brillo Dorado (Acierto)
             pasoActual++;
-
-            // Aquí pondrás el sonido de "Acierto" más adelante
-            // Ejemplo: AudioSource.PlayClipAtPoint(sonidoAcierto, runaDisparada.transform.position);
 
             if (pasoActual >= 3)
             {
@@ -87,43 +69,39 @@ public class GestorPuzzleRunas : NetworkBehaviour
         }
         else
         {
-            // Fallo. Reiniciamos todo.
-            Debug.Log("[PUZZLE RUNAS] ¡Fallo! Secuencia incorrecta. Reiniciando...");
-
-            // Aquí pondrás el sonido de "Error/Zumbido" más adelante
-
+            // Error: Reiniciamos la secuencia
             pasoActual = 0;
-            foreach (var piedra in todasLasPiedras)
+            foreach (var p in listaPiedras)
             {
-                if (piedra != null)
-                {
-                    piedra.estadoBrillo.Value = 2; // Estado 2 desencadena el parpadeo rojo
-                }
+                if (p != null) p.estadoBrillo.Value = 2; // Brillo Rojo (Error)
             }
-
-            // Para que no se queden en rojo para siempre, las devolvemos a estado 0 tras un breve retraso
-            Invoke(nameof(ApagarTodasLasRunas), 1.0f);
+            Invoke(nameof(ResetearVisual), 1f);
         }
     }
 
-    private void ApagarTodasLasRunas()
+    private void ResetearVisual()
     {
-        if (!IsServer) return;
-        foreach (var piedra in todasLasPiedras)
+        foreach (var p in listaPiedras)
         {
-            if (piedra != null) piedra.estadoBrillo.Value = 0; // Vuelven a azul
+            if (p != null) p.estadoBrillo.Value = 0; // Vuelven a la normalidad
         }
     }
 
     private void CompletarPuzzle()
     {
-        Debug.Log("<color=green>[PUZZLE RUNAS] ¡PUZZLE COMPLETADO! Generando pieza del bastón...</color>");
         puzzleCompletado.Value = true;
 
+        // 1. Damos la recompensa
         if (prefabPiezaBaston != null && puntoAparicionPieza != null)
         {
             GameObject pieza = Instantiate(prefabPiezaBaston, puntoAparicionPieza.position, Quaternion.identity);
             pieza.GetComponent<NetworkObject>().Spawn(true);
+        }
+
+        // 2. Activamos el efecto de desaparición en todas las piedras
+        foreach (var p in listaPiedras)
+        {
+            if (p != null) p.DesaparecerPiedraClientRpc();
         }
     }
 }

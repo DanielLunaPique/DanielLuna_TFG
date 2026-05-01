@@ -166,6 +166,7 @@ MonoBehaviour:
   idMisionAsociada: Tarjeta
   destruirAlCompletar: 1
   sonidoInteraccion: {fileID: 0}
+  activaPuzzleRunas: 1
 --- !u!135 &6961620582142499778
 SphereCollider:
   m_ObjectHideFlags: 0

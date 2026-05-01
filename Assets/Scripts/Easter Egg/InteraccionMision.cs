@@ -11,6 +11,10 @@ public class InteraccionMision : NetworkBehaviour
     public bool destruirAlCompletar = false;
     public AudioClip sonidoInteraccion;
 
+    [Header("Eventos Especiales de Easter Egg")]
+    [Tooltip("Activa esto SÓLO en la tarjeta para que encienda las runas al cogerla")]
+    public bool activaPuzzleRunas = false; // <--- NUEVO INTERRUPTOR
+
     private bool jugadorCerca = false;
     private UIManager uiLocalJugador;
 
@@ -50,7 +54,6 @@ public class InteraccionMision : NetworkBehaviour
         {
             if (uiLocalJugador != null) uiLocalJugador.OcultarTextoInteraccion();
 
-            // Reproducimos el sonido LOCALMENTE justo en el momento de pulsar para que no haya lag
             if (sonidoInteraccion != null)
             {
                 AudioSource.PlayClipAtPoint(sonidoInteraccion, transform.position, 1f);
@@ -65,7 +68,17 @@ public class InteraccionMision : NetworkBehaviour
     {
         QuestManager.Instance.NotificarPasoCompletadoServerRpc(idMisionAsociada);
 
-        // Si es una tarjeta o pata de cabra, el servidor ordena a todos destruirla
+        // --- NUEVO: ACTIVACIÓN DEL PUZZLE SÓLO EN EL SERVIDOR ---
+        if (activaPuzzleRunas)
+        {
+            GestorPuzzleRunas gestorRunas = FindObjectOfType<GestorPuzzleRunas>();
+            if (gestorRunas != null)
+            {
+                gestorRunas.ActivarPuzzle();
+            }
+        }
+        // ---------------------------------------------------------
+
         if (destruirAlCompletar)
         {
             GetComponent<NetworkObject>().Despawn(true);

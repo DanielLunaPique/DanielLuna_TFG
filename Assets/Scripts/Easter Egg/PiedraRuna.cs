@@ -1,69 +1,100 @@
+using System.Collections;
 using UnityEngine;
 using Unity.Netcode;
-using TMPro;
-using System.Collections;
+using UnityEngine.Rendering.Universal;
 
 public class PiedraRuna : NetworkBehaviour
 {
-    [Header("Referencias")]
-    public GestorPuzzleRunas miGestor;
-    public TextMeshPro textoRuna; // Arrastra aquí el TextMeshPro hijo
+    private GestorPuzzleRunas gestor;
+    private DecalProjector proyector;
+    private MeshRenderer meshRenderer;
+    private Collider miCollider;
 
-    [Header("Colores Visuales")]
-    public Color colorNormal = new Color(0, 0.5f, 1f); // Azul
-    public Color colorCorrecto = new Color(1f, 0.8f, 0f); // Dorado/Amarillo
-    public Color colorError = new Color(1f, 0f, 0f); // Rojo
+    public NetworkVariable<int> estadoBrillo = new NetworkVariable<int>(0);
 
-    // Sincronización en red
-    public NetworkVariable<int> indiceSimbologia = new NetworkVariable<int>(-1);
-    public NetworkVariable<int> estadoBrillo = new NetworkVariable<int>(0); // 0=Normal, 1=Correcto, 2=Error
+    // Esta variable controla si la piedra se dibuja o no en el mapa
+    public NetworkVariable<bool> piedraVisible = new NetworkVariable<bool>(false);
 
     public override void OnNetworkSpawn()
     {
-        // Cuando cambien los valores en el servidor, los clientes actualizan el aspecto
-        indiceSimbologia.OnValueChanged += ActualizarSimboloVisual;
-        estadoBrillo.OnValueChanged += ActualizarColorVisual;
+        gestor = GetComponentInParent<GestorPuzzleRunas>();
+        proyector = GetComponentInChildren<DecalProjector>();
+        meshRenderer = GetComponent<MeshRenderer>();
+        miCollider = GetComponent<Collider>();
 
-        // Búsqueda de emergencia por si se te olvida arrastrar el gestor
-        if (miGestor == null) miGestor = FindObjectOfType<GestorPuzzleRunas>();
+        estadoBrillo.OnValueChanged += ActualizarColor;
+        piedraVisible.OnValueChanged += AlternarVisibilidad;
+
+        // Forzamos el estado visual nada más nacer (normalmente invisibles hasta que toque el paso)
+        AplicarVisibilidad(piedraVisible.Value);
+    }
+
+    private void AlternarVisibilidad(bool viejo, bool nuevo)
+    {
+        AplicarVisibilidad(nuevo);
+    }
+
+    private void AplicarVisibilidad(bool visible)
+    {
+        if (meshRenderer != null) meshRenderer.enabled = visible;
+        if (miCollider != null) miCollider.enabled = visible;
+        if (proyector != null) proyector.enabled = visible;
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void RecibirDisparoServerRpc()
     {
-        // Si el puzzle ya está completado o la piedra ya está pulsada, ignoramos
-        if (miGestor == null || miGestor.puzzleCompletado.Value || estadoBrillo.Value == 1) return;
-
-        miGestor.ComprobarDisparoServer(this);
-    }
-
-    private void ActualizarSimboloVisual(int viejo, int nuevo)
-    {
-        if (nuevo >= 0 && miGestor != null)
+        // Evitamos que nos disparen si somos invisibles
+        if (gestor != null && piedraVisible.Value)
         {
-            textoRuna.text = miGestor.listaSimbolos[nuevo];
-            textoRuna.color = colorNormal;
+            gestor.ComprobarDisparoServer(this);
         }
     }
 
-    private void ActualizarColorVisual(int viejo, int nuevo)
+    private void ActualizarColor(int viejo, int nuevo)
     {
-        if (nuevo == 0) textoRuna.color = colorNormal;
-        else if (nuevo == 1) textoRuna.color = colorCorrecto;
-        else if (nuevo == 2) StartCoroutine(EfectoError());
+        if (proyector == null) return;
+
+        // Asegúrate de que tu Shader de Decal tiene la propiedad _EmissionColor
+        if (nuevo == 0) proyector.material.SetColor("_EmissionColor", Color.cyan * 2f); // Normal
+        else if (nuevo == 1) proyector.material.SetColor("_EmissionColor", Color.yellow * 4f); // Acierto
+        else if (nuevo == 2) proyector.material.SetColor("_EmissionColor", Color.red * 4f); // Error
     }
 
-    private IEnumerator EfectoError()
+    [ClientRpc]
+    public void DesaparecerPiedraClientRpc()
     {
-        textoRuna.color = colorError;
-        // Tiembla un poco visualmente
-        Vector3 posOriginal = textoRuna.transform.localPosition;
-        for (int i = 0; i < 10; i++)
+        // Todos los clientes ejecutan la animación simultáneamente
+        StartCoroutine(RutinaDesaparecer());
+    }
+
+    private IEnumerator RutinaDesaparecer()
+    {
+        // Desactivamos el collider de inmediato para no absorber más balas
+        if (miCollider != null) miCollider.enabled = false;
+
+        Vector3 escalaOriginal = transform.localScale;
+        Vector3 escalaAmpliada = escalaOriginal * 1.3f;
+
+        // 1. Ampliación rápida (anticipación)
+        float t = 0;
+        while (t < 0.2f)
         {
-            textoRuna.transform.localPosition = posOriginal + (Vector3)Random.insideUnitCircle * 0.05f;
-            yield return new WaitForSeconds(0.05f);
+            t += Time.deltaTime;
+            transform.localScale = Vector3.Lerp(escalaOriginal, escalaAmpliada, t / 0.2f);
+            yield return null;
         }
-        textoRuna.transform.localPosition = posOriginal;
-        textoRuna.color = colorNormal;
+
+        // 2. Reducción a 0 (desaparición)
+        t = 0;
+        while (t < 0.4f)
+        {
+            t += Time.deltaTime;
+            transform.localScale = Vector3.Lerp(escalaAmpliada, Vector3.zero, t / 0.4f);
+            yield return null;
+        }
+
+        // Por seguridad, las ocultamos del todo
+        AplicarVisibilidad(false);
     }
 }

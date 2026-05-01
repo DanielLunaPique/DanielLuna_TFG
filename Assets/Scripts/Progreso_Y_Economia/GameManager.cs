@@ -8,21 +8,21 @@ public class GameManager : NetworkBehaviour
 {
     public enum EstadoJuego
     {
-        EsperandoJugadores, 
+        EsperandoJugadores,
         Preparacion,
         RondaNormal,
-        RondaEspecial, //Perros
-        RondaAsedio,   //Zombies electricos origins
-        RondaAguantar  //Para sobrevivir en una zona
+        RondaEspecial,
+        RondaAsedio,
+        RondaAguantar  // <-- ¡Ha llegado su momento!
     }
 
     [Header("Control de partida")]
-    public NetworkVariable<EstadoJuego> estadoActual = new NetworkVariable<EstadoJuego> ();
-    public NetworkVariable<int> rondaActual = new NetworkVariable<int> ();
+    public NetworkVariable<EstadoJuego> estadoActual = new NetworkVariable<EstadoJuego>();
+    public NetworkVariable<int> rondaActual = new NetworkVariable<int>();
 
     [Header("ContadorDeZombies")]
-    public NetworkVariable<int> zombiesVivos = new NetworkVariable<int> (); 
-    public NetworkVariable<int> zombiesPorGenerar = new NetworkVariable<int> ();
+    public NetworkVariable<int> zombiesVivos = new NetworkVariable<int>();
+    public NetworkVariable<int> zombiesPorGenerar = new NetworkVariable<int>();
 
     [Header("Ajustes")]
     public float tiempoPreparacion = 10f;
@@ -39,7 +39,11 @@ public class GameManager : NetworkBehaviour
     public static GameManager Instance;
 
     [Header("Objetos Globales")]
-    public NetworkVariable<bool> pataDeCabraDesbloqueada = new NetworkVariable<bool> ();
+    public NetworkVariable<bool> pataDeCabraDesbloqueada = new NetworkVariable<bool>();
+
+    // --- VARIABLES PARA EL LOCKDOWN ---
+    private int zombiesGuardadosParaLuego = 0;
+    private AltarRitual altarActual; // Para avisarle cuando termine
 
     private void Awake()
     {
@@ -47,13 +51,9 @@ public class GameManager : NetworkBehaviour
         else Destroy(gameObject);
     }
 
-
     public override void OnNetworkSpawn()
     {
-        if (IsServer)
-        {
-            StartCoroutine(IniciarPrimeraRonda());
-        }
+        if (IsServer) StartCoroutine(IniciarPrimeraRonda());
     }
 
     private IEnumerator IniciarPrimeraRonda()
@@ -62,13 +62,8 @@ public class GameManager : NetworkBehaviour
         yield return new WaitForSeconds(2f);
 
         rondaActual.Value++;
-        Debug.Log($"[GameManager] ¡Empieza la Ronda {rondaActual.Value}! Zombies a generar: {zombiesPorGenerar.Value}");
-
         zombiesPorGenerar.Value = rondaActual.Value * 5;
-
-        //Aqui se decide si la ronda es especial, etc
         estadoActual.Value = EstadoJuego.RondaNormal;
-
         StartCoroutine(RutinaGenerarZombies());
     }
 
@@ -76,19 +71,13 @@ public class GameManager : NetworkBehaviour
     {
         estadoActual.Value = EstadoJuego.Preparacion;
         if (audioSourceUI != null && sonidoCambioRonda != null)
-        {
             audioSourceUI.PlayOneShot(sonidoCambioRonda);
-        }
+
         yield return new WaitForSeconds(tiempoPreparacion);
 
         rondaActual.Value++;
-        Debug.Log($"[GameManager] ¡Empieza la Ronda {rondaActual.Value}! Zombies a generar: {zombiesPorGenerar.Value}");
-
         zombiesPorGenerar.Value = rondaActual.Value * 5;
-
-        //Aqui se decide si la ronda es especial, etc
         estadoActual.Value = EstadoJuego.RondaNormal;
-
         StartCoroutine(RutinaGenerarZombies());
     }
 
@@ -97,15 +86,9 @@ public class GameManager : NetworkBehaviour
         while ((estadoActual.Value == EstadoJuego.RondaNormal || estadoActual.Value == EstadoJuego.RondaEspecial)
                && zombiesPorGenerar.Value > 0)
         {
-            // 1. Conseguir a todos los jugadores conectados
             var clientes = NetworkManager.Singleton.ConnectedClientsList;
-            if (clientes.Count == 0)
-            {
-                yield return new WaitForSeconds(1f); // Esperar si no hay nadie
-                continue;
-            }
+            if (clientes.Count == 0) { yield return new WaitForSeconds(1f); continue; }
 
-            // 2. Buscar todas las Zonas activas y sus spawns
             ZonaZombies[] todasLasZonas = FindObjectsOfType<ZonaZombies>();
             List<PuntoSpawnZombie> spawnsValidos = new List<PuntoSpawnZombie>();
 
@@ -114,14 +97,8 @@ public class GameManager : NetworkBehaviour
                 if (zona.estaActiva) spawnsValidos.AddRange(zona.puntosDeSpawn);
             }
 
-            if (spawnsValidos.Count == 0)
-            {
-                Debug.LogWarning("[GameManager] No hay spawns activos.");
-                yield return new WaitForSeconds(2f);
-                continue;
-            }
+            if (spawnsValidos.Count == 0) { yield return new WaitForSeconds(2f); continue; }
 
-            // 3. LA MAGIA: Ordenar los spawns por cercanía al jugador más cercano
             var spawnsOrdenados = spawnsValidos.OrderBy(spawn =>
             {
                 float distanciaMinima = float.MaxValue;
@@ -136,31 +113,22 @@ public class GameManager : NetworkBehaviour
                 return distanciaMinima;
             }).ToList();
 
-            // 4. Coger solo los 5 más cercanos (o menos si el mapa tiene menos de 5)
             int puntosAElegir = Mathf.Min(spawnsSimultaneos, spawnsOrdenados.Count);
-
-            // 5. Ver cuántos zombies nos quedan por generar. 
-            // Si nos quedan 3, no vamos a generar 5 de golpe.
             int zombiesEnEstaOleada = Mathf.Min(puntosAElegir, zombiesPorGenerar.Value);
 
-            // 6. ¡Generar simultáneamente!
             for (int i = 0; i < zombiesEnEstaOleada; i++)
             {
                 GenerarUnZombieEnPunto(spawnsOrdenados[i].transform);
             }
 
-            // 7. Pausa antes de la siguiente oleada (Delay para el mismo punto)
             yield return new WaitForSeconds(tiempoEntreOleadas);
         }
     }
 
     private void GenerarUnZombieEnPunto(Transform punto)
     {
-        // Instanciamos y conectamos a la red
         GameObject nuevoZombie = Instantiate(prefabZombie, punto.position, punto.rotation);
         nuevoZombie.GetComponent<NetworkObject>().Spawn(true);
-
-        // Actualizamos números
         zombiesPorGenerar.Value--;
         zombiesVivos.Value++;
     }
@@ -170,44 +138,123 @@ public class GameManager : NetworkBehaviour
         if (!IsServer) return;
 
         zombiesVivos.Value--;
-        if(zombiesVivos.Value <= 0 && zombiesPorGenerar.Value <= 0)
+
+        // Solo cambiamos de ronda si estamos en una ronda normal
+        if (estadoActual.Value == EstadoJuego.RondaNormal || estadoActual.Value == EstadoJuego.RondaEspecial)
         {
-            StartCoroutine(IniciarSiguienteRonda());
+            if (zombiesVivos.Value <= 0 && zombiesPorGenerar.Value <= 0)
+            {
+                StartCoroutine(IniciarSiguienteRonda());
+            }
         }
     }
 
     // ==========================================
-    // SISTEMA DE MUERTE Y ESPECTADOR
+    // SISTEMA DE LOCKDOWN (CUARENTENA DEL ALTAR)
     // ==========================================
-    public void ComprobarEstadoEquipo()
+
+    public void IniciarLockdownDeSupervivencia(float duracion, List<PuntoSpawnZombie> spawnsAltar, AltarRitual altar)
     {
-        // Solo el Servidor es el juez absoluto
         if (!IsServer) return;
 
-        int jugadoresVivos = 0;
+        altarActual = altar;
+        estadoActual.Value = EstadoJuego.RondaAguantar;
+        zombiesGuardadosParaLuego = zombiesPorGenerar.Value + zombiesVivos.Value;
 
-        // Recorremos todos los clientes conectados
-        foreach (var cliente in NetworkManager.Singleton.ConnectedClientsList)
+        GameObject[] todosLosZombis = GameObject.FindGameObjectsWithTag("Zombie");
+        foreach (GameObject z in todosLosZombis)
         {
-            if (cliente.PlayerObject != null)
+            if (z.TryGetComponent(out NetworkObject netObj))
             {
-                SaludJugador salud = cliente.PlayerObject.GetComponent<SaludJugador>();
-                if (salud != null && !salud.estaMuerto)
-                {
-                    jugadoresVivos++;
-                }
+                netObj.Despawn(true);
             }
         }
 
-        if (jugadoresVivos == 0)
+        zombiesVivos.Value = 0;
+        zombiesPorGenerar.Value = 0;
+
+        Debug.Log($"<color=cyan>[GameManager] ¡INICIA EL LOCKDOWN DE {duracion} SEGUNDOS!</color>");
+
+        StartCoroutine(RutinaRelojLockdown(duracion));
+        StartCoroutine(RutinaGeneradorLockdown(spawnsAltar));
+    }
+
+    // El Reloj se queda igual
+    private IEnumerator RutinaRelojLockdown(float duracionRestante)
+    {
+        while (duracionRestante > 0)
         {
-            Debug.Log("<color=red>[GameManager] GAME OVER - TODOS HAN MUERTO</color>");
-            // Aquí pondremos la rutina para cargar el menú principal
-            // StartCoroutine(RutinaGameOver());
+            duracionRestante -= 1f;
+            yield return new WaitForSeconds(1f);
         }
-        else
+        TerminarLockdown();
+    }
+
+    // CORRECCIÓN: Ahora lee la posición extrayéndola de PuntoSpawnZombie
+    private IEnumerator RutinaGeneradorLockdown(List<PuntoSpawnZombie> spawns)
+    {
+        int topeZombisLockdown = 12;
+
+        while (estadoActual.Value == EstadoJuego.RondaAguantar)
         {
-            Debug.Log($"<color=yellow>[GameManager] Quedan {jugadoresVivos} jugadores vivos. La partida continúa.</color>");
+            if (zombiesVivos.Value < topeZombisLockdown && spawns.Count > 0)
+            {
+                PuntoSpawnZombie spawnElegido = spawns[Random.Range(0, spawns.Count)];
+
+                // Extraemos el transform interno del punto de spawn
+                GameObject nuevoZombie = Instantiate(prefabZombie, spawnElegido.transform.position, spawnElegido.transform.rotation);
+                nuevoZombie.GetComponent<NetworkObject>().Spawn(true);
+
+                zombiesVivos.Value++;
+            }
+            yield return new WaitForSeconds(1.5f);
         }
     }
+
+    private IEnumerator RutinaGeneradorLockdown(List<Transform> spawns)
+    {
+        // Durante el Lockdown, generamos zombies constantemente si hay menos del tope
+        int topeZombisLockdown = 12;
+
+        while (estadoActual.Value == EstadoJuego.RondaAguantar)
+        {
+            if (zombiesVivos.Value < topeZombisLockdown && spawns.Count > 0)
+            {
+                // Elegir un spawn al azar de la lista del altar
+                Transform spawnElegido = spawns[Random.Range(0, spawns.Count)];
+
+                GameObject nuevoZombie = Instantiate(prefabZombie, spawnElegido.position, spawnElegido.rotation);
+                nuevoZombie.GetComponent<NetworkObject>().Spawn(true);
+
+                zombiesVivos.Value++;
+            }
+
+            yield return new WaitForSeconds(1.5f); // Ritmo de aparición agresivo
+        }
+    }
+
+    private void TerminarLockdown()
+    {
+        Debug.Log("<color=green>[GameManager] ¡LOCKDOWN SUPERADO!</color>");
+
+        // 1. Limpiamos a los zombis del ritual
+        GameObject[] todosLosZombis = GameObject.FindGameObjectsWithTag("Zombie");
+        foreach (GameObject z in todosLosZombis)
+        {
+            if (z.TryGetComponent(out NetworkObject netObj)) netObj.Despawn(true);
+        }
+
+        // 2. Avisamos al altar de que abra las puertas
+        if (altarActual != null) altarActual.CompletarRitual();
+
+        // 3. Devolvemos los zombis que robamos antes del evento a la cola
+        zombiesVivos.Value = 0;
+        zombiesPorGenerar.Value = zombiesGuardadosParaLuego;
+
+        // 4. Reanudamos la ronda normal
+        estadoActual.Value = EstadoJuego.RondaNormal;
+        StartCoroutine(RutinaGenerarZombies());
+    }
+
+    public void ComprobarEstadoEquipo() { /* Tu código de gameOver */ }
 }

@@ -2,7 +2,7 @@
 - Project name: TFG
 - Unity version: Unity 6000.3.8f1
 - Active game object:
-  - Name: Piedra 1
+  - Name: Cube
   - Tag: Untagged
-  - Layer: Default
+  - Layer: Suelo
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->
