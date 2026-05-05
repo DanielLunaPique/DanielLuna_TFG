@@ -24,6 +24,14 @@ public class EstadisticasArma : ScriptableObject
     [Header("Alcance")]
     public int alcance = 0;
 
+    [Header("Armas Especiales (Proyectiles)")]
+    [Tooltip("El Prefab de la bola de energía")]
+    public GameObject prefabProyectil;
+    [Tooltip("La velocidad a la que vuela la bola")]
+    public float velocidadProyectil = 40f;
+    [Tooltip("El tamaño de la explosión al chocar (en metros)")]
+    public float radioExplosion = 4f;
+
     [Header("Position")]
     public Vector3 position;
 
@@ -34,6 +42,7 @@ public class EstadisticasArma : ScriptableObject
     {
         Automatico,
         Semiautomatico,
-        Rafaga
+        Rafaga, 
+        ProyectilFisico
     }
 }

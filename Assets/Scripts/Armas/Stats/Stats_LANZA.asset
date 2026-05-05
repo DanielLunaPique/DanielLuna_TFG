@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53b4280f51fca6d4c9bfd8f490b50f9e, type: 3}
+  m_Name: Stats_LANZA
+  m_EditorClassIdentifier: Assembly-CSharp::EstadisticasArma
+  nombreArma: LANZA
+  prefabArma: {fileID: 5703203649118065775, guid: a2c7f418716e9474a9ddf59d28edcd2b, type: 3}
+  prefabVisualCaja: {fileID: 1247882308176086331, guid: 44b3859bc5df1734dbe74571c4b0a6c8, type: 3}
+  "da\xF1o": 280
+  cadenciaDisparo: 1.5
+  balasCargador: 6
+  tiempoRecarga: 2.82
+  modoDisparo: 3
+  balasPorRafaga: 1
+  alcance: 350
+  prefabProyectil: {fileID: 6893971039540509936, guid: 9a3527f82dc4c7c4da8bd381f53dd31e, type: 3}
+  velocidadProyectil: 40
+  radioExplosion: 4
+  position: {x: 0.7639992, y: -0.60699993, z: 2.7420108}
+  rotation: {x: 77.07362, y: 66.62054, z: 72.88187}

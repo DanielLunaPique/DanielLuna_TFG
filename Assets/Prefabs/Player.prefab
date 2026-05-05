@@ -661,7 +661,7 @@ MonoBehaviour:
   armasEquipadas:
   - {fileID: 0}
   - {fileID: 0}
-  armaPorDefecto: {fileID: 11400000, guid: ea41de7a34f4fc146a6dc87d1fdd8dcd, type: 2}
+  armaPorDefecto: {fileID: 11400000, guid: 76571b7f79b523240bfdbb23cba96257, type: 2}
   indiceArmaActiva: 0
 --- !u!114 &2170082812036978702
 MonoBehaviour:
@@ -5046,7 +5046,6 @@ GameObject:
   - component: {fileID: 8708412599380401644}
   - component: {fileID: 7454636547162115150}
   - component: {fileID: 5816309552049782015}
-  - component: {fileID: 2750092068170172109}
   - component: {fileID: 706341917890028071}
   - component: {fileID: 5402558822396174209}
   - component: {fileID: 5970575661620594375}
@@ -5440,23 +5439,6 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
---- !u!114 &2750092068170172109
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3677875331054248455}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2f47c3d010f9b874fbd4afab5958f934, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SistemaSaludFPS
-  saludMaxima: 100
-  saludActual: 0
-  alMorir:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &706341917890028071
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7592,7 +7574,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5521150551928184816}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.09020714, y: 0.6744122, z: 0.729317, w: 0.071606494}
+  m_LocalRotation: {x: 0.09020708, y: 0.6744122, z: 0.729317, w: 0.071606524}
   m_LocalPosition: {x: -0.4443689, y: -0.01148662, z: 0.14387351}
   m_LocalScale: {x: 0.3332876, y: 0.21012387, z: 0.33332825}
   m_ConstrainProportionsScale: 0

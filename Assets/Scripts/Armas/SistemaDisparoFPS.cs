@@ -65,6 +65,15 @@ public class SistemaDisparoFPS : MonoBehaviour
                 StartCoroutine(DispararRafaga(arma, stats));
             }
         }
+
+        else if (stats.modoDisparo == TipoDisparo.ProyectilFisico)
+        {
+            // Lo tratamos como un arma semiautomática (clic a clic)
+            if (Input.GetMouseButtonDown(0) && Time.time >= tiempoProximoDisparo)
+            {
+                DispararProyectilFisico(arma, stats);
+            }
+        }
     }
 
     private System.Collections.IEnumerator DispararRafaga(DatosArma arma, EstadisticasArma stats)
@@ -184,6 +193,51 @@ public class SistemaDisparoFPS : MonoBehaviour
         {
             controladorFPS.AplicarRetroceso();
         }
+
+        if (controladorCamara != null)
+        {
+            controladorCamara.RecibirRetroceso(
+                arma.recoilCamaraArriba,
+                arma.recoilCamaraLado,
+                arma.velocidadRetrocesoCamara,
+                arma.topeRetrocesoVertical,
+                arma.fuerzaTironRegreso
+            );
+        }
+    }
+
+    void DispararProyectilFisico(DatosArma arma, EstadisticasArma stats)
+    {
+        if (arma.balasActuales <= 0) return;
+
+        arma.balasActuales--;
+        tiempoProximoDisparo = Time.time + stats.cadenciaDisparo;
+
+        if (stats.prefabProyectil != null)
+        {
+            // Instanciamos la bola un pelín más adelante de la cámara para no chocarnos con nosotros mismos
+            Vector3 puntoNacimiento = camaraPrincipal.transform.position + (camaraPrincipal.transform.forward * 0.5f);
+
+            // Creamos la bola
+            GameObject bola = Instantiate(stats.prefabProyectil, puntoNacimiento, camaraPrincipal.transform.rotation);
+
+            // Le damos el empujón usando el Rigidbody
+            if (bola.TryGetComponent(out Rigidbody rb))
+            {
+                rb.linearVelocity = camaraPrincipal.transform.forward * stats.velocidadProyectil;
+            }
+
+            // Le inyectamos los datos del daño, el radio y quién la disparó
+            if (bola.TryGetComponent(out OrbeEnergia scriptOrbe))
+            {
+                scriptOrbe.dañoAoE = stats.daño;
+                scriptOrbe.radio = stats.radioExplosion;
+                scriptOrbe.idAtacante = Unity.Netcode.NetworkManager.Singleton.LocalClientId;
+            }
+        }
+
+        // Aplicamos el retroceso del arma y de la cámara (¡para que siga sintiéndose poderosa!)
+        if (controladorFPS != null) controladorFPS.AplicarRetroceso();
 
         if (controladorCamara != null)
         {

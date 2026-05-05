@@ -20,12 +20,6 @@ public class SoporteDiana : NetworkBehaviour
         {
             if (miGestor == null) miGestor = GameObject.Find(nombreDelGestor)?.GetComponent<GestorDianas>();
 
-            // EL CHIVATO DE LAS REFERENCIAS
-            Debug.Log($"[SOPORTE {gameObject.name}] Naciendo en el servidor. " +
-                      $"¿Gestor encontrado?: {(miGestor != null ? "SÍ" : "NO")}. " +
-                      $"¿Punto A asignado?: {(puntoA != null ? "SÍ" : "NO")}. " +
-                      $"¿Punto B asignado?: {(puntoB != null ? "SÍ" : "NO")}.");
-
             if (puntoA != null)
             {
                 transform.position = puntoA.position;

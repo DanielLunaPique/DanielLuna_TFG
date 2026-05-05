@@ -2,7 +2,7 @@
 - Project name: TFG
 - Unity version: Unity 6000.3.8f1
 - Active game object:
-  - Name: Cube
+  - Name: OrbeEnergia
   - Tag: Untagged
-  - Layer: Suelo
+  - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

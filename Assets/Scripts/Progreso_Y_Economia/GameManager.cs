@@ -13,7 +13,7 @@ public class GameManager : NetworkBehaviour
         RondaNormal,
         RondaEspecial,
         RondaAsedio,
-        RondaAguantar  // <-- ¡Ha llegado su momento!
+        RondaAguantar  
     }
 
     [Header("Control de partida")]
@@ -161,13 +161,11 @@ public class GameManager : NetworkBehaviour
         estadoActual.Value = EstadoJuego.RondaAguantar;
         zombiesGuardadosParaLuego = zombiesPorGenerar.Value + zombiesVivos.Value;
 
+        // Limpiamos la arena pacíficamente antes de empezar
         GameObject[] todosLosZombis = GameObject.FindGameObjectsWithTag("Zombie");
         foreach (GameObject z in todosLosZombis)
         {
-            if (z.TryGetComponent(out NetworkObject netObj))
-            {
-                netObj.Despawn(true);
-            }
+            if (z.TryGetComponent(out NetworkObject netObj)) netObj.Despawn(true);
         }
 
         zombiesVivos.Value = 0;
@@ -179,7 +177,6 @@ public class GameManager : NetworkBehaviour
         StartCoroutine(RutinaGeneradorLockdown(spawnsAltar));
     }
 
-    // El Reloj se queda igual
     private IEnumerator RutinaRelojLockdown(float duracionRestante)
     {
         while (duracionRestante > 0)
@@ -187,74 +184,73 @@ public class GameManager : NetworkBehaviour
             duracionRestante -= 1f;
             yield return new WaitForSeconds(1f);
         }
-        TerminarLockdown();
+
+        StartCoroutine(RutinaTerminarLockdown());
     }
 
-    // CORRECCIÓN: Ahora lee la posición extrayéndola de PuntoSpawnZombie
     private IEnumerator RutinaGeneradorLockdown(List<PuntoSpawnZombie> spawns)
     {
-        int topeZombisLockdown = 12;
+        int topeZombisLockdown = 24;
 
         while (estadoActual.Value == EstadoJuego.RondaAguantar)
         {
             if (zombiesVivos.Value < topeZombisLockdown && spawns.Count > 0)
             {
-                PuntoSpawnZombie spawnElegido = spawns[Random.Range(0, spawns.Count)];
+                int cantidadASpawnear = Mathf.Min(2, topeZombisLockdown - zombiesVivos.Value);
 
-                // Extraemos el transform interno del punto de spawn
-                GameObject nuevoZombie = Instantiate(prefabZombie, spawnElegido.transform.position, spawnElegido.transform.rotation);
-                nuevoZombie.GetComponent<NetworkObject>().Spawn(true);
+                for (int i = 0; i < cantidadASpawnear; i++)
+                {
+                    PuntoSpawnZombie spawnElegido = spawns[Random.Range(0, spawns.Count)];
 
-                zombiesVivos.Value++;
+                    // 1. Lo creamos físicamente en el mundo
+                    GameObject nuevoZombie = Instantiate(prefabZombie, spawnElegido.transform.position, spawnElegido.transform.rotation);
+
+                    // 2. GAME FEEL: Le hackeamos el cerebro ANTES de conectarlo a la red
+                    if (nuevoZombie.TryGetComponent(out ZombieIA ia))
+                    {
+                        ia.velocidadBaseInicial = ia.velocidadMaxima;
+                    }
+
+                    // 3. AHORA SÍ, lo mandamos a la red. Al nacer, hará sus cálculos usando la velocidad máxima.
+                    nuevoZombie.GetComponent<NetworkObject>().Spawn(true);
+
+                    zombiesVivos.Value++;
+                }
             }
-            yield return new WaitForSeconds(1.5f);
+
+            yield return new WaitForSeconds(1.0f);
         }
     }
 
-    private IEnumerator RutinaGeneradorLockdown(List<Transform> spawns)
+    private IEnumerator RutinaTerminarLockdown()
     {
-        // Durante el Lockdown, generamos zombies constantemente si hay menos del tope
-        int topeZombisLockdown = 12;
+        Debug.Log("<color=green>[GameManager] ¡LOCKDOWN SUPERADO! Limpiando almas...</color>");
 
-        while (estadoActual.Value == EstadoJuego.RondaAguantar)
-        {
-            if (zombiesVivos.Value < topeZombisLockdown && spawns.Count > 0)
-            {
-                // Elegir un spawn al azar de la lista del altar
-                Transform spawnElegido = spawns[Random.Range(0, spawns.Count)];
+        if (altarActual != null) altarActual.CompletarRitual();
 
-                GameObject nuevoZombie = Instantiate(prefabZombie, spawnElegido.position, spawnElegido.rotation);
-                nuevoZombie.GetComponent<NetworkObject>().Spawn(true);
-
-                zombiesVivos.Value++;
-            }
-
-            yield return new WaitForSeconds(1.5f); // Ritmo de aparición agresivo
-        }
-    }
-
-    private void TerminarLockdown()
-    {
-        Debug.Log("<color=green>[GameManager] ¡LOCKDOWN SUPERADO!</color>");
-
-        // 1. Limpiamos a los zombis del ritual
+        // ==========================================
+        // GAME FEEL 2: MATAMOS A TODOS DE FORMA CINEMATOGRÁFICA
+        // ==========================================
         GameObject[] todosLosZombis = GameObject.FindGameObjectsWithTag("Zombie");
         foreach (GameObject z in todosLosZombis)
         {
-            if (z.TryGetComponent(out NetworkObject netObj)) netObj.Despawn(true);
+            // Usamos tu función TakeDamageServerRpc, le pasamos daño infinito y ID 0 (no le da dinero a nadie)
+            if (z.TryGetComponent(out Zombie scriptZombie))
+            {
+                scriptZombie.TakeDamageServerRpc(99999, 0);
+            }
         }
 
-        // 2. Avisamos al altar de que abra las puertas
-        if (altarActual != null) altarActual.CompletarRitual();
+        // Tu script Zombie.cs ya tiene un 'yield return new WaitForSeconds(3f)' interno antes de desaparecer.
+        // Aun así, hacemos que el GameManager espere 4 segundos antes de volver a spawnear zombies normales
+        // para dar un respiro visual.
+        yield return new WaitForSeconds(4f);
 
-        // 3. Devolvemos los zombis que robamos antes del evento a la cola
         zombiesVivos.Value = 0;
         zombiesPorGenerar.Value = zombiesGuardadosParaLuego;
 
-        // 4. Reanudamos la ronda normal
         estadoActual.Value = EstadoJuego.RondaNormal;
         StartCoroutine(RutinaGenerarZombies());
     }
-
     public void ComprobarEstadoEquipo() { /* Tu código de gameOver */ }
 }

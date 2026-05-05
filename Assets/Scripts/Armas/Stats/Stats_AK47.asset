@@ -17,7 +17,7 @@ MonoBehaviour:
   prefabVisualCaja: {fileID: 2558141238811818592, guid: f42cf0ec1bfa46346b0056c680bca027, type: 3}
   "da\xF1o": 27
   cadenciaDisparo: 0.104
-  balasCargador: 500
+  balasCargador: 30
   tiempoRecarga: 2.75
   modoDisparo: 0
   balasPorRafaga: 3
