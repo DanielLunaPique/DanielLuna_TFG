@@ -15,6 +15,7 @@ MonoBehaviour:
   nombreArma: AK-47
   prefabArma: {fileID: 2558141238811818592, guid: 68587b2d9c60944489560cf05cdd1aaf, type: 3}
   prefabVisualCaja: {fileID: 2558141238811818592, guid: f42cf0ec1bfa46346b0056c680bca027, type: 3}
+  efectoFogonazo: {fileID: 100006, guid: 30b4cc2728d8cec499fad63ba93785a4, type: 3}
   "da\xF1o": 27
   cadenciaDisparo: 0.104
   balasCargador: 30
@@ -22,5 +23,8 @@ MonoBehaviour:
   modoDisparo: 0
   balasPorRafaga: 3
   alcance: 350
+  prefabProyectil: {fileID: 0}
+  velocidadProyectil: 40
+  radioExplosion: 4
   position: {x: 0.27313036, y: -0.3820002, z: 1.0055497}
   rotation: {x: 2.7167008, y: 358.808, z: 359.74762}

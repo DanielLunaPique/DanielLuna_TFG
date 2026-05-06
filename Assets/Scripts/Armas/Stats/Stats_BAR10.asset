@@ -15,6 +15,7 @@ MonoBehaviour:
   nombreArma: BAR10
   prefabArma: {fileID: 639178805255782959, guid: 8095ef38caf3d1f459ef19d91b36d73e, type: 3}
   prefabVisualCaja: {fileID: 639178805255782959, guid: a0c4c8710781ecd4c85bd885b515de0d, type: 3}
+  efectoFogonazo: {fileID: 100006, guid: 30b4cc2728d8cec499fad63ba93785a4, type: 3}
   "da\xF1o": 29
   cadenciaDisparo: 0.1053
   balasCargador: 20
@@ -22,5 +23,8 @@ MonoBehaviour:
   modoDisparo: 0
   balasPorRafaga: 3
   alcance: 550
+  prefabProyectil: {fileID: 0}
+  velocidadProyectil: 40
+  radioExplosion: 4
   position: {x: 0.27198976, y: -0.48199996, z: 1.4387686}
   rotation: {x: 2.7167008, y: 358.808, z: 359.74762}

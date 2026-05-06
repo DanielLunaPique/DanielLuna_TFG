@@ -140,7 +140,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4bf708a26f9cba4eb43ecf85f11e6c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EfectoFlotar
-  velocidadRotacion: 45
+  velocidadRotacion: 100
   amplitudFlote: 0.2
   velocidadFlote: 2
 --- !u!1 &4473848712893019633
@@ -283,7 +283,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4bf708a26f9cba4eb43ecf85f11e6c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EfectoFlotar
-  velocidadRotacion: 45
+  velocidadRotacion: 100
   amplitudFlote: 0.2
   velocidadFlote: 2
 --- !u!1 &6893971039540509936
@@ -331,7 +331,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6893971039540509936}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 3
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -386,7 +386,7 @@ MonoBehaviour:
   "da\xF1oAoE": 0
   radio: 0
   idAtacante: 0
-  efectoExplosion: {fileID: 100002, guid: c17698f595aa942cab4326f0ffaf25c2, type: 3}
+  efectoExplosion: {fileID: 2965222256817593503, guid: a164e676dbbd6e54587237e619372c98, type: 3}
 --- !u!1001 &5275309372174823933
 PrefabInstance:
   m_ObjectHideFlags: 0

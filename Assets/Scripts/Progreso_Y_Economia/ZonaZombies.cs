@@ -23,6 +23,5 @@ public class ZonaZombies : MonoBehaviour
     public void AutocompletarSpawns()
     {
         puntosDeSpawn = new List<PuntoSpawnZombie>(GetComponentsInChildren<PuntoSpawnZombie>());
-        Debug.Log($"Se han encontrado {puntosDeSpawn.Count} puntos de spawn en {gameObject.name}.");
     }
 }

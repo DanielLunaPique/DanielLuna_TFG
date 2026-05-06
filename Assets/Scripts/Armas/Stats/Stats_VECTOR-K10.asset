@@ -15,6 +15,7 @@ MonoBehaviour:
   nombreArma: VECTOR-K10
   prefabArma: {fileID: 8712849249800013046, guid: 457a5e0e81592b046a8717a070ea6770, type: 3}
   prefabVisualCaja: {fileID: 8712849249800013046, guid: 1ec278c18cd2e2f4cbfe8317ff6c2f69, type: 3}
+  efectoFogonazo: {fileID: 100000, guid: cdf14baff693fbc439f8c859529a63a6, type: 3}
   "da\xF1o": 17
   cadenciaDisparo: 0.064
   balasCargador: 36
@@ -22,5 +23,8 @@ MonoBehaviour:
   modoDisparo: 0
   balasPorRafaga: 3
   alcance: 140
+  prefabProyectil: {fileID: 0}
+  velocidadProyectil: 40
+  radioExplosion: 4
   position: {x: 0.27257344, y: -0.36300015, z: 1.4577032}
   rotation: {x: 2.7167008, y: 358.808, z: 359.74762}

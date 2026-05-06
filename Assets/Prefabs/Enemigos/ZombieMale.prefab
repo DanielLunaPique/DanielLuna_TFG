@@ -1713,6 +1713,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ParteDelCuerpo
   zombiePrincipal: {fileID: 4157563630932618115}
   "multiplicadorDa\xF1o": 0.5
+  esCabeza: 0
 --- !u!1 &3032970125681944548
 GameObject:
   m_ObjectHideFlags: 0
@@ -1816,6 +1817,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ParteDelCuerpo
   zombiePrincipal: {fileID: 4157563630932618115}
   "multiplicadorDa\xF1o": 1
+  esCabeza: 0
 --- !u!1 &3258224982516596454
 GameObject:
   m_ObjectHideFlags: 0
@@ -3773,6 +3775,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ParteDelCuerpo
   zombiePrincipal: {fileID: 4157563630932618115}
   "multiplicadorDa\xF1o": 1.5
+  esCabeza: 1
 --- !u!1 &8058382057067616535
 GameObject:
   m_ObjectHideFlags: 0

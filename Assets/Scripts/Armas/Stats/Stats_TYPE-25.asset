@@ -15,6 +15,7 @@ MonoBehaviour:
   nombreArma: TYPE-25
   prefabArma: {fileID: 8609571142284620566, guid: c3e82067129c1184bb25997b1b2c3380, type: 3}
   prefabVisualCaja: {fileID: 8609571142284620566, guid: ecf98a11d880e5b499334d337f159d70, type: 3}
+  efectoFogonazo: {fileID: 100006, guid: 30b4cc2728d8cec499fad63ba93785a4, type: 3}
   "da\xF1o": 25
   cadenciaDisparo: 0.078
   balasCargador: 26
@@ -22,5 +23,8 @@ MonoBehaviour:
   modoDisparo: 0
   balasPorRafaga: 3
   alcance: 400
+  prefabProyectil: {fileID: 0}
+  velocidadProyectil: 40
+  radioExplosion: 4
   position: {x: 0.2701206, y: -0.40200022, z: 2.031406}
   rotation: {x: 2.7167008, y: 358.808, z: 359.74762}

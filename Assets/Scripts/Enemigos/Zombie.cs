@@ -27,7 +27,9 @@ public class Zombie : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void TakeDamageServerRpc(int damage, ulong idAtacante)
+    // Añadimos el booleano al final. Le ponemos "= false" por defecto para que no dé errores
+    // si lo llamas desde otro sitio (como el Orbe o el GameManager)
+    public void TakeDamageServerRpc(int damage, ulong idAtacante, bool esTiroALaCabeza = false)
     {
         if (salud.Value <= 0) return;
 
@@ -36,7 +38,9 @@ public class Zombie : NetworkBehaviour
 
         if (salud.Value <= 0)
         {
-            IngresarDineroEnBancoServidor(idAtacante, puntosPorMuerte);
+            // --- MAGIA DEL HEADSHOT ---
+            int puntosFinales = esTiroALaCabeza ? 100 : puntosPorMuerte;
+            IngresarDineroEnBancoServidor(idAtacante, puntosFinales);
 
             if (GameManager.Instance != null)
             {
@@ -49,17 +53,14 @@ public class Zombie : NetworkBehaviour
                 agente.isStopped = true;
                 agente.velocity = Vector3.zero;
                 agente.speed = 0f;
-                agente.enabled = false; // Apagamos el agente del todo para que no estorbe
+                agente.enabled = false;
             }
 
-            // APAGAMOS EL COLLIDER EN EL SERVIDOR para que los demás zombies no frenen al chocar con él
             Collider col = GetComponent<Collider>();
             if (col != null) col.enabled = false;
 
-            // 1. Avisamos a todas las pantallas de que el zombie ha muerto
             MorirClientRpc();
 
-            // 2. El servidor espera a que termine la animación antes de borrarlo
             StartCoroutine(EsperarYDespawnear());
         }
     }

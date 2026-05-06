@@ -237,7 +237,7 @@ public class GameManager : NetworkBehaviour
             // Usamos tu función TakeDamageServerRpc, le pasamos daño infinito y ID 0 (no le da dinero a nadie)
             if (z.TryGetComponent(out Zombie scriptZombie))
             {
-                scriptZombie.TakeDamageServerRpc(99999, 0);
+                scriptZombie.TakeDamageServerRpc(99999, 0, false);
             }
         }
 

@@ -961,6 +961,7 @@ MonoBehaviour:
   estadisticas: {fileID: 11400000, guid: 44f70cef061d45644ab20448e99978fc, type: 2}
   agarreManoIzquierda: {fileID: 6544333212096948548}
   puntoDeMira: {fileID: 2421390824777861840}
+  puntoDeDisparo: {fileID: 0}
   posicionSprint: {x: 0.05, y: 0, z: 0.1}
   rotacionSprint: {x: 7, y: -10, z: 10}
   balasActuales: 0

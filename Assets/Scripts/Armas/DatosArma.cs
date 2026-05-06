@@ -12,6 +12,10 @@ public class DatosArma : MonoBehaviour
     [Header("Posición de Apuntado (ADS)")]
     public Transform puntoDeMira;
 
+    [Header("Disparo de Proyectiles")]
+    [Tooltip("Coloca aquí un objeto vacío que esté en la punta del cañón")]
+    public Transform puntoDeDisparo;
+
     [Header("Posición de Esprintar")]
     [Tooltip("Cómo se coloca el arma cuando corres (ej. apuntando un poco hacia abajo y al lado)")]
     public Vector3 posicionSprint = new Vector3(0.05f, 0.1f, 0.1f);

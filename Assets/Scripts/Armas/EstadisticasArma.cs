@@ -9,6 +9,10 @@ public class EstadisticasArma : ScriptableObject
     public GameObject prefabArma;
     public GameObject prefabVisualCaja;
 
+    [Header("Efectos Visuales")]
+    [Tooltip("El sistema de partículas que sale del cañón al disparar")]
+    public GameObject efectoFogonazo;
+
     [Header("Estadisticas de Combate")]
     public int daño = 25;
     public float cadenciaDisparo = 0.1f;

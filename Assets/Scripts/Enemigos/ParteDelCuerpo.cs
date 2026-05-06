@@ -2,21 +2,22 @@ using UnityEngine;
 
 public class ParteDelCuerpo : MonoBehaviour
 {
-    [Tooltip("Arrastra aquí el objeto padre que tiene el script Zombie.cs")]
     public Zombie zombiePrincipal;
-
-    [Tooltip("Ej: 2 para la cabeza, 1 para el pecho, 0.5 para las piernas")]
     public float multiplicadorDaño = 1f;
 
-    // Esta función la llamará la bala cuando nos dé
+    [Header("Headshot")]
+    [Tooltip("Marca esto SOLO en el collider de la cabeza")]
+    public bool esCabeza = false; // <--- NUEVA CASILLA
+
+    // Tu función que recibe el daño desde el arma
     public void RecibirDisparo(int dañoBase, ulong idAtacante)
     {
-        if (zombiePrincipal == null) return;
+        if (zombiePrincipal != null)
+        {
+            int dañoFinal = Mathf.RoundToInt(dañoBase * multiplicadorDaño);
 
-        // Calculamos el daño final redondeando al número entero más cercano
-        int dañoFinal = Mathf.RoundToInt(dañoBase * multiplicadorDaño);
-
-        // Le mandamos el daño ya multiplicado al script principal del zombie
-        zombiePrincipal.TakeDamageServerRpc(dañoFinal, idAtacante);
+            // AHORA le pasamos también el chivato de si es la cabeza
+            zombiePrincipal.TakeDamageServerRpc(dañoFinal, idAtacante, esCabeza);
+        }
     }
 }

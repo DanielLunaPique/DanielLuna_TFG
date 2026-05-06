@@ -31,6 +31,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4930888727033843413}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5987043106784106206
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8162467565185301157}
+  m_Layer: 8
+  m_Name: PuntoDeDisparo
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8162467565185301157
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5987043106784106206}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.129, y: 1.045, z: 0.109}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4930888727033843413}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6447967025739772379
 GameObject:
   m_ObjectHideFlags: 0
@@ -147,6 +178,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: d3fc6535c6628414281098af52d5bdd5, type: 3}
       insertIndex: 1
       addedObject: {fileID: 134017328252618452}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: d3fc6535c6628414281098af52d5bdd5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8162467565185301157}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d3fc6535c6628414281098af52d5bdd5, type: 3}
       insertIndex: -1
@@ -177,6 +211,7 @@ MonoBehaviour:
   estadisticas: {fileID: 11400000, guid: 76571b7f79b523240bfdbb23cba96257, type: 2}
   agarreManoIzquierda: {fileID: 2499882138989860015}
   puntoDeMira: {fileID: 134017328252618452}
+  puntoDeDisparo: {fileID: 8162467565185301157}
   posicionSprint: {x: -0.1, y: 0.4, z: 0.2}
   rotacionSprint: {x: 10, y: -10, z: -5}
   balasActuales: 0

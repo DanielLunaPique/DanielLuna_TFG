@@ -106,6 +106,7 @@ public class SistemaDisparoFPS : MonoBehaviour
         }
 
         arma.balasActuales--;
+        MostrarFogonazo(arma, stats);
         tiempoProximoDisparo = Time.time + stats.cadenciaDisparo;
 
         float dispersionTotal = (arma.dispersionBase * controladorFPS.multiplicadorDispersion) + controladorFPS.penalizacionDisparo;
@@ -211,17 +212,30 @@ public class SistemaDisparoFPS : MonoBehaviour
         if (arma.balasActuales <= 0) return;
 
         arma.balasActuales--;
+        MostrarFogonazo(arma, stats);
         tiempoProximoDisparo = Time.time + stats.cadenciaDisparo;
 
         if (stats.prefabProyectil != null)
         {
-            // Instanciamos la bola un pelín más adelante de la cámara para no chocarnos con nosotros mismos
-            Vector3 puntoNacimiento = camaraPrincipal.transform.position + (camaraPrincipal.transform.forward * 0.5f);
+            Vector3 puntoNacimiento;
+            Quaternion rotacionNacimiento = camaraPrincipal.transform.rotation;
+
+            // Si le hemos asignado un punto de disparo en la punta del arma, lo usamos.
+            // Si se nos ha olvidado, usamos la cámara como plan B para que no dé error.
+            if (arma.puntoDeDisparo != null)
+            {
+                puntoNacimiento = arma.puntoDeDisparo.position;
+            }
+            else
+            {
+                puntoNacimiento = camaraPrincipal.transform.position + (camaraPrincipal.transform.forward * 0.5f);
+            }
 
             // Creamos la bola
-            GameObject bola = Instantiate(stats.prefabProyectil, puntoNacimiento, camaraPrincipal.transform.rotation);
+            GameObject bola = Instantiate(stats.prefabProyectil, puntoNacimiento, rotacionNacimiento);
 
-            // Le damos el empujón usando el Rigidbody
+            // IMPORTANTE: Le decimos a la bola que viaje hacia donde está mirando la cámara (la cruceta),
+            // no hacia donde mira el cañón del arma, para que siempre tengas precisión perfecta.
             if (bola.TryGetComponent(out Rigidbody rb))
             {
                 rb.linearVelocity = camaraPrincipal.transform.forward * stats.velocidadProyectil;
@@ -236,7 +250,7 @@ public class SistemaDisparoFPS : MonoBehaviour
             }
         }
 
-        // Aplicamos el retroceso del arma y de la cámara (¡para que siga sintiéndose poderosa!)
+        // Aplicamos el retroceso
         if (controladorFPS != null) controladorFPS.AplicarRetroceso();
 
         if (controladorCamara != null)
@@ -248,6 +262,23 @@ public class SistemaDisparoFPS : MonoBehaviour
                 arma.topeRetrocesoVertical,
                 arma.fuerzaTironRegreso
             );
+        }
+    }
+
+    private void MostrarFogonazo(DatosArma arma, EstadisticasArma stats)
+    {
+        // Solo lo creamos si el arma tiene el efecto asignado y hemos configurado su punto de disparo
+        if (stats.efectoFogonazo != null && arma.puntoDeDisparo != null)
+        {
+            // Lo instanciamos COMO HIJO del punto de disparo. 
+            // Así, si el jugador gira la cámara mientras dispara, la luz se mueve con el arma.
+            GameObject fogonazo = Instantiate(stats.efectoFogonazo, arma.puntoDeDisparo.position, arma.puntoDeDisparo.rotation, arma.puntoDeDisparo);
+
+            fogonazo.transform.localPosition = Vector3.zero;
+        fogonazo.transform.localRotation = Quaternion.identity;
+
+            // Un fogonazo es súper rápido, lo destruimos a la décima de segundo (o medio segundo si tiene humo)
+            Destroy(fogonazo, 1f);
         }
     }
 }
