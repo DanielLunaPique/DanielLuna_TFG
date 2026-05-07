@@ -155,4 +155,29 @@ public class InventarioArmas : MonoBehaviour
             }
         }
     }
+
+    // --- SISTEMA DE QUITAR ARMAS ---
+    public void QuitarArma(EstadisticasArma statsBuscadas)
+    {
+        for (int i = 0; i < armasEquipadas.Length; i++)
+        {
+            if (armasEquipadas[i] != null && armasEquipadas[i].estadisticas == statsBuscadas)
+            {
+                // 1. Destruimos el arma físicamente
+                Destroy(armasEquipadas[i].gameObject);
+                armasEquipadas[i] = null;
+
+                // 2. Forzamos el cambio al otro hueco de arma
+                int otroIndice = (i == 0) ? 1 : 0;
+
+                if (armasEquipadas[otroIndice] != null)
+                {
+                    indiceArmaActiva = otroIndice;
+                    ActualizarVisibilidadArmas();
+                    ConfigurarArmaEnControlador();
+                }
+                break;
+            }
+        }
+    }
 }

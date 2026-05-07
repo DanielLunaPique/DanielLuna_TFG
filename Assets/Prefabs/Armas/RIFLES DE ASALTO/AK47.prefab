@@ -331,6 +331,7 @@ Transform:
   m_LocalScale: {x: 3.18, y: 2.2519677, z: 5.009226}
   m_ConstrainProportionsScale: 1
   m_Children:
+  - {fileID: 1806642235997247105}
   - {fileID: 4297512926070446237}
   - {fileID: 4568825563042256397}
   - {fileID: 6747906716947528747}
@@ -358,6 +359,7 @@ MonoBehaviour:
   estadisticas: {fileID: 11400000, guid: 001922ebe559d0e4bad0854bd3ea6ba5, type: 2}
   agarreManoIzquierda: {fileID: 4568825563042256397}
   puntoDeMira: {fileID: 4297512926070446237}
+  puntoDeDisparo: {fileID: 1806642235997247105}
   posicionSprint: {x: 0.05, y: 0.1, z: 0.1}
   rotacionSprint: {x: 7, y: -10, z: 10}
   balasActuales: 0
@@ -582,6 +584,37 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &4123790560157093309
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1806642235997247105}
+  m_Layer: 8
+  m_Name: PuntoDeDisparo
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1806642235997247105
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4123790560157093309}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.045, z: 0.768}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2939591940835352794}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5079521814632665102
 GameObject:
   m_ObjectHideFlags: 0

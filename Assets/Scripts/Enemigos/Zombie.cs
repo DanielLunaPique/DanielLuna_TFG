@@ -76,6 +76,13 @@ public class Zombie : NetworkBehaviour
         Collider col = GetComponent<Collider>();
         if (col != null) col.enabled = false;
 
+        ParteDelCuerpo[] hitboxes = GetComponentsInChildren<ParteDelCuerpo>();
+        foreach (ParteDelCuerpo hitbox in hitboxes)
+        {
+            Collider hitboxCol = hitbox.GetComponent<Collider>();
+            if (hitboxCol != null) hitboxCol.enabled = false;
+        }
+
         // Desactivamos el script de IA para que deje de mirarnos o intentar moverse
         ZombieIA ia = GetComponent<ZombieIA>();
         if (ia != null) ia.enabled = false;

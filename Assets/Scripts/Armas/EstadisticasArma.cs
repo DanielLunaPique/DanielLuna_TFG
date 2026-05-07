@@ -13,6 +13,14 @@ public class EstadisticasArma : ScriptableObject
     [Tooltip("El sistema de partículas que sale del cañón al disparar")]
     public GameObject efectoFogonazo;
 
+    [Header("Audio")]
+    [Tooltip("El sonido que hace el arma al disparar")]
+    public AudioClip sonidoDisparo;
+    [Tooltip("Pitch mínimo para darle variedad (Ej: 0.95)")]
+    public float pitchMinimo = 0.95f;
+    [Tooltip("Pitch máximo para darle variedad (Ej: 1.05)")]
+    public float pitchMaximo = 1.05f;
+
     [Header("Estadisticas de Combate")]
     public int daño = 25;
     public float cadenciaDisparo = 0.1f;

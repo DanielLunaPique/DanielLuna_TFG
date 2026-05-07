@@ -14,17 +14,22 @@ public class AltarRitual : NetworkBehaviour
     public GameObject barreraLockdown;
     public Transform puntoAparicionBaston;
     public GameObject prefabBastonVisual;
-    public GameObject prefabBastonArma;
+
+    [Header("Lógica de Arma (Estilo Caja/Pared)")]
+    public EstadisticasArma statsLanza;
+
+    private GameObject visualLanzaEnAltar;
 
     [Header("Zonas de Peligro")]
-    // CORRECCIÓN: Ahora usa tu script personalizado
     public List<PuntoSpawnZombie> spawnsExclusivosAltar;
 
     private NetworkVariable<bool> ritualIniciado = new NetworkVariable<bool>(false);
     private NetworkVariable<bool> ritualCompletado = new NetworkVariable<bool>(false);
+    private NetworkVariable<bool> lanzaDisponibleEnAltar = new NetworkVariable<bool>(false);
 
     private bool jugadorCerca = false;
     private UIManager uiLocalJugador;
+
     private GameObject bastonVisualInstanciado;
 
     private void Start()
@@ -34,19 +39,11 @@ public class AltarRitual : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (ritualIniciado.Value || ritualCompletado.Value) return;
-
         if (other.CompareTag("Player") && other.GetComponent<NetworkObject>().IsOwner)
         {
-            // CORRECCIÓN: Comprobamos si estamos en el paso correcto de la historia
-            if (QuestManager.Instance == null || QuestManager.Instance.idPasoActual.Value.ToString() != idPasoRequerido)
-                return;
-
             jugadorCerca = true;
             uiLocalJugador = other.GetComponentInChildren<UIManager>();
-
-            if (uiLocalJugador != null)
-                uiLocalJugador.MostrarTextoInteraccion("Pulsa [E] para forjar el Bastón.");
+            ActualizarUI();
         }
     }
 
@@ -59,16 +56,116 @@ public class AltarRitual : NetworkBehaviour
         }
     }
 
+    private void ActualizarUI()
+    {
+        if (uiLocalJugador == null) return;
+
+        if (!ritualIniciado.Value)
+        {
+            if (QuestManager.Instance != null && QuestManager.Instance.idPasoActual.Value.ToString() == idPasoRequerido)
+                uiLocalJugador.MostrarTextoInteraccion("Pulsa [E] para forjar el Bastón.");
+        }
+        else if (ritualCompletado.Value)
+        {
+            InventarioArmas invLocal = null;
+            if (NetworkManager.Singleton.LocalClient != null && NetworkManager.Singleton.LocalClient.PlayerObject != null)
+            {
+                // CORRECCIÓN: Usamos InChildren para la UI también
+                invLocal = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponentInChildren<InventarioArmas>();
+            }
+
+            if (lanzaDisponibleEnAltar.Value)
+            {
+                uiLocalJugador.MostrarTextoInteraccion("Pulsa [E] para coger el Bastón.");
+            }
+            else if (invLocal != null && invLocal.TieneArma(statsLanza))
+            {
+                // Contamos cuántas armas tenemos en total
+                int cantidadArmas = 0;
+                foreach (var arma in invLocal.armasEquipadas) if (arma != null) cantidadArmas++;
+
+                if (cantidadArmas > 1)
+                {
+                    uiLocalJugador.MostrarTextoInteraccion("Pulsa [E] para depositar y recargar el Bastón.");
+                }
+                else
+                {
+                    uiLocalJugador.MostrarTextoInteraccion("No puedes soltar tu única arma.");
+                }
+            }
+            else
+            {
+                uiLocalJugador.OcultarTextoInteraccion();
+            }
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void IntercambiarBastonServerRpc(ServerRpcParams rpcParams = default)
+    {
+        ulong clientId = rpcParams.Receive.SenderClientId;
+        var playerObject = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject;
+
+        InventarioArmas inv = playerObject.GetComponentInChildren<InventarioArmas>();
+        if (inv == null) return;
+
+        ClientRpcParams parametrosPrivados = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams { TargetClientIds = new ulong[] { clientId } }
+        };
+
+        if (lanzaDisponibleEnAltar.Value)
+        {
+            RecibirArmaClientRpc(parametrosPrivados);
+            AparecerLanzaEnAltar(false);
+        }
+        else if (inv.TieneArma(statsLanza))
+        {
+            // El servidor también comprueba que no sea tu única arma por seguridad
+            int cantidadArmas = 0;
+            foreach (var arma in inv.armasEquipadas) if (arma != null) cantidadArmas++;
+
+            if (cantidadArmas > 1)
+            {
+                SoltarArmaClientRpc(parametrosPrivados);
+                AparecerLanzaEnAltar(true);
+            }
+        }
+    }
+
+    [ClientRpc]
+    private void SoltarArmaClientRpc(ClientRpcParams rpcParams = default)
+    {
+        var miJugador = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+        if (miJugador != null)
+        {
+            InventarioArmas miInventario = miJugador.GetComponentInChildren<InventarioArmas>();
+            if (miInventario != null)
+            {
+                // Llamamos a nuestra nueva función limpia
+                miInventario.QuitarArma(statsLanza);
+            }
+        }
+    }
+
     private void Update()
     {
-        if (jugadorCerca && !ritualIniciado.Value && Input.GetKeyDown(KeyCode.E))
+        if (!jugadorCerca || !Input.GetKeyDown(KeyCode.E)) return;
+
+        if (!ritualIniciado.Value)
         {
-            // Doble comprobación de seguridad antes de iniciar
             if (QuestManager.Instance.idPasoActual.Value.ToString() == idPasoRequerido)
             {
-                if (uiLocalJugador != null) uiLocalJugador.OcultarTextoInteraccion();
+                uiLocalJugador.OcultarTextoInteraccion();
                 IniciarRitualServerRpc();
             }
+        }
+        else if (ritualCompletado.Value)
+        {
+            IntercambiarBastonServerRpc();
+
+            // Actualizamos la UI inmediatamente para que el texto cambie rápido
+            Invoke(nameof(ActualizarUI), 0.1f);
         }
     }
 
@@ -87,10 +184,7 @@ public class AltarRitual : NetworkBehaviour
         }
 
         if (GameManager.Instance != null)
-        {
-            // Pasamos nuestra lista de spawns adaptada
             GameManager.Instance.IniciarLockdownDeSupervivencia(duracionLockdown, spawnsExclusivosAltar, this);
-        }
     }
 
     public void CompletarRitual()
@@ -101,28 +195,56 @@ public class AltarRitual : NetworkBehaviour
         ActivarBarrerasClientRpc(false);
 
         if (bastonVisualInstanciado != null)
-        {
             bastonVisualInstanciado.GetComponent<NetworkObject>().Despawn(true);
-        }
 
-        if (prefabBastonArma != null && puntoAparicionBaston != null)
-        {
-            GameObject armaRecogible = Instantiate(prefabBastonArma, puntoAparicionBaston.position, puntoAparicionBaston.rotation);
-            armaRecogible.GetComponent<NetworkObject>().Spawn(true);
-        }
+        AparecerLanzaEnAltar(true);
 
-        // Notificamos al sistema de misiones que el paso ha terminado
         QuestManager.Instance.NotificarPasoCompletadoServerRpc(idPasoRequerido);
+    }
+
+    private void AparecerLanzaEnAltar(bool aparecer)
+    {
+        if (!IsServer) return;
+
+        lanzaDisponibleEnAltar.Value = aparecer;
+        GestionarVisualLanzaClientRpc(aparecer);
+    }
+
+    [ClientRpc]
+    private void GestionarVisualLanzaClientRpc(bool mostrar)
+    {
+        // CORRECCIÓN: Usamos prefabVisualCaja para que sea un simple modelo 3D estético
+        if (mostrar && visualLanzaEnAltar == null && statsLanza.prefabVisualCaja != null)
+        {
+            visualLanzaEnAltar = Instantiate(statsLanza.prefabVisualCaja, puntoAparicionBaston.position, puntoAparicionBaston.rotation);
+            visualLanzaEnAltar.transform.SetParent(puntoAparicionBaston);
+        }
+
+        if (visualLanzaEnAltar != null) visualLanzaEnAltar.SetActive(mostrar);
+
+        if (jugadorCerca) ActualizarUI();
+    }
+
+    [ClientRpc]
+    private void RecibirArmaClientRpc(ClientRpcParams rpcParams = default)
+    {
+        // Usamos la misma lógica exacta y segura de tu EntregarArmaAlInventarioClientRpc
+        var miJugador = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+        if (miJugador != null)
+        {
+            InventarioArmas miInventario = miJugador.GetComponentInChildren<InventarioArmas>();
+            if (miInventario != null)
+            {
+                miInventario.RecibirNuevaArma(statsLanza);
+            }
+        }
     }
 
     [ClientRpc]
     private void ActivarBarrerasClientRpc(bool activar)
     {
         if (barreraLockdown != null) barreraLockdown.SetActive(activar);
-
-        if (activar && sonidoInicioRitual != null)
-            AudioSource.PlayClipAtPoint(sonidoInicioRitual, transform.position);
-        else if (!activar && sonidoFinRitual != null)
-            AudioSource.PlayClipAtPoint(sonidoFinRitual, transform.position);
+        if (activar && sonidoInicioRitual != null) AudioSource.PlayClipAtPoint(sonidoInicioRitual, transform.position);
+        else if (!activar && sonidoFinRitual != null) AudioSource.PlayClipAtPoint(sonidoFinRitual, transform.position);
     }
 }

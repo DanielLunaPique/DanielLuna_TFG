@@ -15,7 +15,10 @@ MonoBehaviour:
   nombreArma: UZI
   prefabArma: {fileID: 6769287643167909588, guid: 04ebc5795fafdcc4cb4237ae93c66ae9, type: 3}
   prefabVisualCaja: {fileID: 6769287643167909588, guid: e355f88f74f24de4180bcd7911da9c38, type: 3}
-  efectoFogonazo: {fileID: 100000, guid: cdf14baff693fbc439f8c859529a63a6, type: 3}
+  efectoFogonazo: {fileID: 100000, guid: 03a4a1935a9f4454c861dfa0aa6df562, type: 3}
+  sonidoDisparo: {fileID: 8300000, guid: e7a16f2a7715df8439ddb75b45f67dbd, type: 3}
+  pitchMinimo: 0.95
+  pitchMaximo: 1.05
   "da\xF1o": 14
   cadenciaDisparo: 0.064
   balasCargador: 25

@@ -11,6 +11,9 @@ public class SistemaDisparoFPS : MonoBehaviour
     [Tooltip("La cámara desde la que salen los disparos (Main Camera)")]
     public Camera camaraPrincipal;
 
+    [Tooltip("El AudioSource que reproducirá los disparos")]
+    public AudioSource audioFuenteDisparo;
+
     [Header("Configuración de Impactos")]
     [Tooltip("Selecciona la capa 'Jugador'. El raycast ignorará esta capa.")]
     public LayerMask capaIgnorar;
@@ -107,6 +110,7 @@ public class SistemaDisparoFPS : MonoBehaviour
 
         arma.balasActuales--;
         MostrarFogonazo(arma, stats);
+        ReproducirSonidoDisparo(stats);
         tiempoProximoDisparo = Time.time + stats.cadenciaDisparo;
 
         float dispersionTotal = (arma.dispersionBase * controladorFPS.multiplicadorDispersion) + controladorFPS.penalizacionDisparo;
@@ -131,7 +135,6 @@ public class SistemaDisparoFPS : MonoBehaviour
             // 2. Recorremos todo lo que ha atravesado la bala, del más cercano al más lejano
             foreach (RaycastHit impacto in impactos)
             {
-                Debug.Log($"[ARMA] La bala ha chocado contra un objeto llamado: {impacto.collider.gameObject.name}");
                 //Ahora buscamos la ParteDelCuerpo, no al Zombie entero
                 ParteDelCuerpo hitbox = impacto.collider.GetComponent<ParteDelCuerpo>();
 
@@ -157,8 +160,6 @@ public class SistemaDisparoFPS : MonoBehaviour
 
                 else if (impacto.collider.TryGetComponent(out Diana diana))
                 {
-                    // Llamamos a la función que programamos antes
-                    Debug.Log("[ARMA] ¡Es una diana! Enviando orden al servidor...");
                     diana.RecibirDisparoServerRpc();
                 }
 
@@ -169,8 +170,6 @@ public class SistemaDisparoFPS : MonoBehaviour
 
                 else
                 {
-                    Debug.LogWarning("[ARMA] Lo que he golpeado NO tiene el script 'Diana' puesto.");
-                    // Si NO es un zombie (es una pared, suelo, etc.)
                     if (prefabAgujeroBala != null)
                     {
                         Vector3 posicionAgujero = impacto.point + (impacto.normal * 0.001f);
@@ -207,12 +206,25 @@ public class SistemaDisparoFPS : MonoBehaviour
         }
     }
 
+    private void ReproducirSonidoDisparo(EstadisticasArma stats)
+    {
+        if (audioFuenteDisparo != null && stats.sonidoDisparo != null)
+        {
+            // Alteramos el pitch ligeramente para que no suene a "metralleta robótica"
+            audioFuenteDisparo.pitch = Random.Range(stats.pitchMinimo, stats.pitchMaximo);
+
+            // Usamos PlayOneShot para que los sonidos se puedan solapar si disparas muy rápido
+            audioFuenteDisparo.PlayOneShot(stats.sonidoDisparo);
+        }
+    }
+
     void DispararProyectilFisico(DatosArma arma, EstadisticasArma stats)
     {
         if (arma.balasActuales <= 0) return;
 
         arma.balasActuales--;
         MostrarFogonazo(arma, stats);
+        ReproducirSonidoDisparo(stats);
         tiempoProximoDisparo = Time.time + stats.cadenciaDisparo;
 
         if (stats.prefabProyectil != null)
