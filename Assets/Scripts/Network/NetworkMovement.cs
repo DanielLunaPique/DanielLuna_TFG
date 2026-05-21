@@ -156,6 +156,7 @@ public class NetworkMovement : NetworkBehaviour
 
     void RecogerInputsYPosturas()
     {
+        if (InGameMenu.MenuAbierto) return;
         inputX = Input.GetAxis("Horizontal");
         inputZ = Input.GetAxis("Vertical");
         quiereCorrer = Input.GetKey(KeyCode.LeftShift);
@@ -217,6 +218,8 @@ public class NetworkMovement : NetworkBehaviour
     {
         float velocidadActual = velocidadCaminar;
         bool estaRecargando = controladorArmas != null && controladorArmas.estaRecargando;
+
+        if (InGameMenu.MenuAbierto) return;
 
         if (estaTumbado) velocidadActual = velocidadTumbado;
         else if (estaAgachado) velocidadActual = velocidadAgachado;

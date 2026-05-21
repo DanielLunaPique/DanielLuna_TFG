@@ -1,0 +1,18 @@
+:root {
+}
+
+.BotonMenu {
+    background-color: rgba(0, 0, 0, 0);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    -unity-text-align: middle-center;
+    color: rgb(0, 0, 0);
+    -unity-font: url("project://database/Assets/Interfaz/capture-smallz/Capsmall_clean.ttf?fileID=12800000&guid=a6916f25e2d7f8a419d24ad410bd2b51&type=3#Capsmall_clean");
+    background-image: url("project://database/Assets/Interfaz/Interfaz%20Menu/Botones%20y%20logo.png?fileID=1155708938&guid=492f6ea654eccc6478b0ac7ba57d1219&type=3#Botones y logo_1");
+}
+
+.BotonMenu:hover {
+    background-image: url("project://database/Assets/Interfaz/Interfaz%20Menu/solo%20boton.png?fileID=-542010608&guid=4bce0d88bd7050e4bbd5800cb029962b&type=3#solo boton_0");
+}

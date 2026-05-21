@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 
 static class Extensions
@@ -31,7 +32,7 @@ public struct DeadEndCandidate
 
 }
 
-public class EllersMazeGenerator : MonoBehaviour
+public class EllersMazeGenerator : NetworkBehaviour
 {
     [SerializeField] GridSpawner gridSpawner;
 
@@ -62,6 +63,11 @@ public class EllersMazeGenerator : MonoBehaviour
 
     private CellData[,] logicalMap;
 
+    // Variable de red sincronizada para la semilla del laberinto
+    private Unity.Netcode.NetworkVariable<int> mazeSeed = new Unity.Netcode.NetworkVariable<int>(0);
+
+    private static System.Random rng;
+
 
     private Custom_Grid gridXZ;
     private int max_set_val = 1;
@@ -73,23 +79,16 @@ public class EllersMazeGenerator : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(this.gameObject); return; }
         Instance = this;
-    }
 
-    void Start()
-    {
-        // Nos suscribimos al evento de "Servidor Iniciado" para construir el mapa en el momento correcto
-        if (Unity.Netcode.NetworkManager.Singleton != null)
-        {
-            Unity.Netcode.NetworkManager.Singleton.OnServerStarted += IniciarGeneracionLaberinto;
-        }
+        // 1. INICIALIZAMOS AQUÍ EN LUGAR DEL START
+        // Esto garantiza que el mapa lógico y los contenedores existan antes de que llegue la red
+        if (gridSpawner != null) gridXZ = gridSpawner.grid;
 
-        gridXZ = gridSpawner.grid; 
-        
         logicalMap = new CellData[gridSpawner.width, gridSpawner.height];
 
-        for(int i = 0; i < gridSpawner.width; i++)
+        for (int i = 0; i < gridSpawner.width; i++)
         {
-            for(int j = 0; j < gridSpawner.height; j++)
+            for (int j = 0; j < gridSpawner.height; j++)
             {
                 logicalMap[i, j] = gameObject.AddComponent<CellData>();
             }
@@ -97,8 +96,56 @@ public class EllersMazeGenerator : MonoBehaviour
 
         wallsContainer = new GameObject("--- WALLS ---").transform;
         propsContainer = new GameObject("--- PROPS ---").transform;
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer)
+        {
+            // 1. El Host inventa una semilla aleatoria (usando el reloj del sistema)
+            mazeSeed.Value = System.Environment.TickCount;
+
+            // 2. El Host empieza a construir inmediatamente
+            GenerarConSemilla(mazeSeed.Value);
+        }
+        else
+        {
+            // 3. Los clientes miran si la semilla ya ha llegado
+            if (mazeSeed.Value != 0)
+            {
+                GenerarConSemilla(mazeSeed.Value);
+            }
+
+            // 4. Por si acaso la conexión va lenta, nos suscribimos al momento exacto en que llegue
+            mazeSeed.OnValueChanged += (oldValue, newValue) =>
+            {
+                if (newValue != 0) GenerarConSemilla(newValue);
+            };
+        }
+    }
+
+    private void GenerarConSemilla(int semilla)
+    {
+        // SEGURO DE VIDA: Si el grid no se asignó en Awake, lo intentamos cazar ahora
+        if (gridXZ == null && gridSpawner != null) gridXZ = gridSpawner.grid;
+
+        if (gridXZ == null)
+        {
+            Debug.LogError("🚨 ERROR: El GridSpawner no ha creado el mapa a tiempo. Asegúrate de que el script GridSpawner genera su cuadrícula en su función Awake() y no en el Start().");
+            return;
+        }
+
+        // --- ¡EL TRUCO MÁGICO! ---
+        // Forzamos al motor de Unity a usar este número exacto como punto de partida.
+        UnityEngine.Random.InitState(semilla);
+        rng = new System.Random(semilla);
 
         SpawnEllersMaze();
+
+        if (IsServer)
+        {
+            IniciarGeneracionLaberinto();
+        }
     }
 
     private void IniciarGeneracionLaberinto()
@@ -307,8 +354,6 @@ public class EllersMazeGenerator : MonoBehaviour
 
     
     #region HelperFunctions
-
-    private static System.Random rng = new System.Random();
 
     private List<(int[], int)> IncreasedRow(int add_amount, List<(int[], int)> row)
     {
@@ -698,21 +743,24 @@ public class EllersMazeGenerator : MonoBehaviour
                 Vector3 centerPos = gridXZ.GetWorldPosition(x, z) + new Vector3(cellSize/2, yValue, cellSize/2);
 
                 // 3. Lógica de Colocación (Prioridad a Farolas en esquinas)
-                
+
                 // CASO A: Esquina (Muro Arriba y Derecha) -> Farola
                 if (cell.wallTop && cell.wallRight && streetLampPrefab != null)
                 {
-                    Vector3 pos = centerPos + new Vector3(offset, 4, offset);
-                    // Rotamos la farola para que mire hacia el centro (aprox -135 grados o ajusta a tu modelo)
-                    Instantiate(streetLampPrefab, pos, Quaternion.Euler(0, 225, 0), propsContainer);
-                    continue; // Si ponemos farola, no ponemos barril
+                    Vector3 pos = centerPos + new Vector3(offset, 0, offset);
+                    GameObject farola = Instantiate(streetLampPrefab, pos, Quaternion.Euler(0, 165, 0));
+                    farola.GetComponent<Unity.Netcode.NetworkObject>().Spawn(true);
+                    farola.transform.parent = propsContainer; // Lo emparentamos después del Spawn por seguridad
+                    continue;
                 }
-                
+
                 // CASO B: Esquina (Muro Abajo y Izquierda) -> Farola
                 if (cell.wallBottom && cell.wallLeft && streetLampPrefab != null)
                 {
-                    Vector3 pos = centerPos + new Vector3(-offset, 4, -offset);
-                    Instantiate(streetLampPrefab, pos, Quaternion.Euler(0, 45, 0), propsContainer);
+                    Vector3 pos = centerPos + new Vector3(-offset, 0, -offset);
+                    GameObject farola = Instantiate(streetLampPrefab, pos, Quaternion.Euler(0, 345, 0));
+                    farola.GetComponent<Unity.Netcode.NetworkObject>().Spawn(true);
+                    farola.transform.parent = propsContainer;
                     continue;
                 }
 
@@ -720,27 +768,16 @@ public class EllersMazeGenerator : MonoBehaviour
                 if (barrelPrefabs != null && barrelPrefabs.Length > 0)
                 {
                     GameObject propToSpawn = barrelPrefabs[Random.Range(0, barrelPrefabs.Length)];
-                    
-                    if (cell.wallTop) // Pegado arriba
-                    {
-                        Vector3 pos = centerPos + new Vector3(Random.Range(-2f, 2f), 0, offset); // Un poco de variación lateral
-                        GameObject.Instantiate(propToSpawn, pos, Quaternion.identity, propsContainer);
-                    }
-                    else if (cell.wallBottom) // Pegado abajo
-                    {
-                        Vector3 pos = centerPos + new Vector3(Random.Range(-2f, 2f), 0, -offset);
-                        GameObject.Instantiate(propToSpawn, pos, Quaternion.identity, propsContainer);
-                    }
-                    else if (cell.wallLeft) // Pegado izquierda
-                    {
-                        Vector3 pos = centerPos + new Vector3(-offset, 0, Random.Range(-2f, 2f));
-                        GameObject.Instantiate(propToSpawn, pos, Quaternion.identity, propsContainer);
-                    }
-                    else if (cell.wallRight) // Pegado derecha
-                    {
-                        Vector3 pos = centerPos + new Vector3(offset, 0, Random.Range(-2f, 2f));
-                        GameObject.Instantiate(propToSpawn, pos, Quaternion.identity, propsContainer);
-                    }
+                    Vector3 pos = centerPos; // Por defecto
+
+                    if (cell.wallTop) pos += new Vector3(Random.Range(-2f, 2f), 0, offset);
+                    else if (cell.wallBottom) pos += new Vector3(Random.Range(-2f, 2f), 0, -offset);
+                    else if (cell.wallLeft) pos += new Vector3(-offset, 0, Random.Range(-2f, 2f));
+                    else if (cell.wallRight) pos += new Vector3(offset, 0, Random.Range(-2f, 2f));
+
+                    GameObject prop = Instantiate(propToSpawn, pos, Quaternion.identity);
+                    prop.GetComponent<Unity.Netcode.NetworkObject>().Spawn(true);
+                    prop.transform.parent = propsContainer;
                 }
             }
         }

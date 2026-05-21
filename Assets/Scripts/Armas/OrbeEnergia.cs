@@ -36,7 +36,7 @@ public class OrbeEnergia : MonoBehaviour
         {
             GameObject explosionObj = Instantiate(efectoExplosion, transform.position, Quaternion.identity);
             // Destruimos el objeto a los 2.5 segundos (ajusta este tiempo a lo que dure tu humo/fuego)
-            Destroy(explosionObj, 2.5f);
+            Destroy(explosionObj, 1f);
         }
 
         // 2. ESCÁNER DE DAÑO: Creamos una esfera invisible y pillamos todo lo que hay dentro

@@ -25,13 +25,14 @@ public class ZombieIA : NetworkBehaviour
 
     private NavMeshAgent agente;
     private Transform objetivoActual;
-    private bool estaSpawneando = true;
     private float velocidadCalculadaRonda;
 
     [Header("Animaciones")]
     public Animator animator;
 
-    // --- CAMBIO CLAVE: Variable de red para sincronizar la velocidad ---
+    // --- CAMBIOS CLAVE PARA NETCODE ---
+    // Sincronizamos el estado de spawn para que los clientes también sepan cuándo esperar
+    private NetworkVariable<bool> estaSpawneandoRed = new NetworkVariable<bool>(true, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     private NetworkVariable<float> velocidadRed = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     private readonly int triggerAtaqueHash = Animator.StringToHash("Attack");
@@ -43,11 +44,7 @@ public class ZombieIA : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (!IsServer)
-        {
-            agente.enabled = false;
-            return;
-        }
+        if (!IsServer) return; // Los clientes se quedan aquí con el agente apagado esperando al servidor
 
         CalcularVelocidadPorRonda();
         StartCoroutine(RutinaNacimiento());
@@ -62,16 +59,35 @@ public class ZombieIA : NetworkBehaviour
 
     private IEnumerator RutinaNacimiento()
     {
-        estaSpawneando = true;
-        agente.speed = 0f;
+        estaSpawneandoRed.Value = true;
+
         if (animator != null)
         {
-            animator.speed = Random.Range(0.9f, 1.1f);
-            animator.Play(0, -1, Random.Range(0f, 1f));
+            // 1. El nacimiento SIEMPRE empieza en 0 y a velocidad 1
+            // para que coincida matemáticamente con los 2.5 segundos que dura.
+            animator.speed = 1f;
+            animator.Play(0, -1, 0f);
         }
+
         yield return new WaitForSeconds(tiempoDeNacimiento);
-        estaSpawneando = false;
-        agente.speed = velocidadCalculadaRonda;
+
+        // 2. Ya ha salido de la tierra: Activamos el NavMeshAgent
+        if (agente != null)
+        {
+            agente.speed = velocidadCalculadaRonda;
+        }
+
+        // 3. --- EL DESFASE DE ANIMACIÓN (Anti-Clones) ---
+        if (animator != null)
+        {
+            // A partir de este momento, cada zombi moverá las piernas a un ritmo ligeramente distinto.
+            // Esto rompe la sincronización de los pasos inmediatamente.
+            animator.speed = Random.Range(0.85f, 1.15f);
+        }
+
+        estaSpawneandoRed.Value = false;
+
+        // 4. Empiezan a perseguirte
         StartCoroutine(RutinaBuscarObjetivo());
     }
 
@@ -87,7 +103,7 @@ public class ZombieIA : NetworkBehaviour
 
     private void ComprobarSiEsElUltimo()
     {
-        if (GameManager.Instance == null || estaAtacando) return;
+        if (GameManager.Instance == null || estaAtacando || agente == null || !agente.enabled) return;
         agente.speed = (GameManager.Instance.zombiesVivos.Value == 1) ? velocidadCalculadaRonda * multiplicadorUltimoZombie : velocidadCalculadaRonda;
     }
 
@@ -118,22 +134,23 @@ public class ZombieIA : NetworkBehaviour
 
     private void Update()
     {
-        // El cliente solo lee la variable, el servidor la escribe
         if (IsServer)
         {
-            if (estaSpawneando || objetivoActual == null || estaAtacando)
+            // Si está spawneando, el agente está apagado, controlamos la velocidad manualmente a 0
+            if (estaSpawneandoRed.Value || objetivoActual == null || estaAtacando)
                 velocidadRed.Value = 0f;
-            else
+            else if (agente != null && agente.enabled)
                 velocidadRed.Value = agente.velocity.magnitude;
 
             // Lógica de ataque
-            if (objetivoActual != null)
+            if (objetivoActual != null && !estaSpawneandoRed.Value)
             {
                 float distanciaAlJugador = Vector3.Distance(transform.position, objetivoActual.position);
                 if (distanciaAlJugador <= distanciaAtaque && !estaAtacando && Time.time >= proximoAtaque)
                     StartCoroutine(SecuenciaAtaque());
 
-                if (!estaAtacando) agente.SetDestination(objetivoActual.position);
+                if (!estaAtacando && agente != null && agente.enabled)
+                    agente.SetDestination(objetivoActual.position);
             }
         }
 
@@ -142,14 +159,20 @@ public class ZombieIA : NetworkBehaviour
 
     private IEnumerator SecuenciaAtaque()
     {
+        AudioZombie audio = GetComponent<AudioZombie>();
         estaAtacando = true;
         proximoAtaque = Time.time + tiempoEntreAtaques;
-        agente.isStopped = true;
-        agente.velocity = Vector3.zero;
+
+        if (agente != null && agente.enabled)
+        {
+            agente.isStopped = true;
+            agente.velocity = Vector3.zero;
+        }
 
         AtacarClientRpc();
+        if (audio != null) audio.SonarAtaque();
 
-        yield return new WaitForSeconds(2.5f);
+        yield return new WaitForSeconds(1.3f);
         if (agente != null && agente.enabled) agente.isStopped = false;
         estaAtacando = false;
     }
@@ -161,9 +184,16 @@ public class ZombieIA : NetworkBehaviour
     {
         if (animator == null) return;
 
-        // --- FIX DEFINITIVO: Usamos el valor sincronizado en lugar de calcular posiciones ---
+        // Si la variable de red dice que está spawneando, congelamos la velocidad de animación a 0
+        // para que no intente mezclar la caminata con la emersión.
+        if (estaSpawneandoRed.Value)
+        {
+            animator.SetFloat("Speed", 0f);
+            return;
+        }
+
         float v = velocidadRed.Value;
-        if (v < 0.1f) v = 0f; // Evita el "micro-andado"
+        if (v < 0.1f) v = 0f;
 
         animator.SetFloat("Speed", v, 0.25f, Time.deltaTime);
     }

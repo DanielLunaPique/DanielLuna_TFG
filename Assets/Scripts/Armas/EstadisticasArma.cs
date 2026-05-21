@@ -28,6 +28,7 @@ public class EstadisticasArma : ScriptableObject
     [Header("Municion y Recarga")]
     public int balasCargador = 30;
     public float tiempoRecarga = 2.0f;
+    public AudioClip sonidoRecarga;
 
     [Header("Modo de Disparo")]
     public TipoDisparo modoDisparo = TipoDisparo.Automatico;

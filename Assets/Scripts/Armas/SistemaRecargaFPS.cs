@@ -6,7 +6,12 @@ public class SistemaRecargaFPS : MonoBehaviour
     [Header("Referencias")]
     public ControladorArmasFPS controladorFPS;
 
-    // [FUTURO ANIMATOR] Aquí pondremos: public Animator animatorBrazos;
+    [Header("Audio")]
+    public AudioSource audioFuente;
+
+    [Header("Animación Procedural")]
+    public float distanciaBajarRecarga = 0.4f;
+    public float tiempoBajarSubir = 0.25f;
 
     private Coroutine corrutinaRecargaActiva;
 
@@ -16,71 +21,101 @@ public class SistemaRecargaFPS : MonoBehaviour
 
         DatosArma arma = controladorFPS.armaActual;
 
-        // --- 1. SPRINT CANCEL ---
-        // Si estamos recargando, y el jugador pulsa la tecla de correr Y se está moviendo hacia adelante...
         if (controladorFPS.estaRecargando && Input.GetKey(KeyCode.LeftShift) && Input.GetAxis("Vertical") > 0)
         {
-            CancelarRecarga();
-            return; // Salimos del Update para no hacer nada más en este fotograma
+            CancelarRecarga(arma);
+            return;
         }
 
-        // --- 2. RECARGA MANUAL ---
         if (Input.GetKeyDown(KeyCode.R) && !controladorFPS.estaRecargando)
         {
             if (arma.balasActuales < arma.estadisticas.balasCargador && arma.balasReserva > 0)
             {
                 GetComponentInParent<SistemaVoces>().ReproducirFrase(SistemaVoces.TipoVoz.Recarga);
-
-                // Guardamos la corrutina en nuestra variable
                 corrutinaRecargaActiva = StartCoroutine(RutinaRecarga(arma));
             }
         }
 
-        // --- 3. RECARGA AUTOMÁTICA ---
         if (arma.balasActuales <= 0 && !controladorFPS.estaRecargando && arma.balasReserva > 0)
         {
-            // Guardamos la corrutina en nuestra variable
             corrutinaRecargaActiva = StartCoroutine(RutinaRecarga(arma));
         }
     }
 
-    private void CancelarRecarga()
+    private void CancelarRecarga(DatosArma arma)
     {
-        // 1. Matamos el temporizador
         if (corrutinaRecargaActiva != null)
         {
             StopCoroutine(corrutinaRecargaActiva);
             corrutinaRecargaActiva = null;
         }
 
-        // 2. Apagamos el semáforo para que el jugador pueda volver a disparar o correr
         controladorFPS.estaRecargando = false;
 
-        // [FUTURO ANIMATOR] Aquí le dirías a los brazos que vuelvan a la postura de correr
-        // animatorBrazos.SetTrigger("CancelarRecarga");
+        // Si cancelamos, restauramos el contenedor a su posición original en el centro (0,0,0)
+        if (arma.transform.parent != null)
+        {
+            arma.transform.parent.localPosition = Vector3.zero;
+        }
     }
 
     private IEnumerator RutinaRecarga(DatosArma arma)
     {
-        // 1. ENCENDEMOS EL SEMÁFORO ROJO (Bloqueamos disparo y otras acciones)
         controladorFPS.estaRecargando = true;
 
-        // [FUTURO ANIMATOR] Aquí lanzaremos la animación: animatorBrazos.SetTrigger("Recargar");
-        // [FUTURO AUDIO] Aquí reproduciremos el sonido: audioSource.PlayOneShot(sonidoRecarga);
+        if (audioFuente != null && arma.estadisticas.sonidoRecarga != null)
+        {
+            audioFuente.PlayOneShot(arma.estadisticas.sonidoRecarga);
+        }
 
-        // 2. ESPERAMOS EL TIEMPO QUE TARDE LA RECARGA
-        float tiempoRecarga = arma.estadisticas.tiempoRecarga > 0 ? arma.estadisticas.tiempoRecarga : 2f;
-        yield return new WaitForSeconds(tiempoRecarga);
+        Transform contenedor = arma.transform.parent;
 
-        // 3. LA MATEMÁTICA DE LA MUNICIÓN
+        Vector3 posOriginal = Vector3.zero;
+        Vector3 posAbajo = posOriginal - new Vector3(0, distanciaBajarRecarga, 0);
+
+        // --- FASE 1: BAJAR EL ARMA ---
+        float tiempoPasado = 0f;
+        while (tiempoPasado < tiempoBajarSubir)
+        {
+            tiempoPasado += Time.deltaTime;
+            contenedor.localPosition = Vector3.Lerp(posOriginal, posAbajo, tiempoPasado / tiempoBajarSubir);
+            yield return null;
+        }
+
+        // --- FASE 2: ESPERAR (¡MANTENIENDO EL ARMA ABAJO A LA FUERZA!) ---
+        float tiempoEspera = arma.estadisticas.tiempoRecarga - (tiempoBajarSubir * 2);
+        if (tiempoEspera > 0)
+        {
+            float tEspera = 0f;
+            while (tEspera < tiempoEspera)
+            {
+                tEspera += Time.deltaTime;
+
+                // Forzamos la posición en cada frame para ganarle la pelea al script de balanceo
+                contenedor.localPosition = posAbajo;
+
+                yield return null; // Esperamos al siguiente frame
+            }
+        }
+
+        // --- MATEMÁTICA DE LA MUNICIÓN ---
         int balasQueFaltan = arma.estadisticas.balasCargador - arma.balasActuales;
-
         int balasARecargar = Mathf.Min(balasQueFaltan, arma.balasReserva);
-
         arma.balasActuales += balasARecargar;
         arma.balasReserva -= balasARecargar;
 
-        // 4. PONEMOS EL SEMÁFORO EN VERDE
+        // --- FASE 3: SUBIR EL ARMA ---
+        tiempoPasado = 0f;
+        while (tiempoPasado < tiempoBajarSubir)
+        {
+            tiempoPasado += Time.deltaTime;
+            contenedor.localPosition = Vector3.Lerp(posAbajo, posOriginal, tiempoPasado / tiempoBajarSubir);
+            yield return null;
+        }
+
+        // Aseguramos que quede perfecta en el centro
+        contenedor.localPosition = posOriginal;
+
         controladorFPS.estaRecargando = false;
         corrutinaRecargaActiva = null;
     }

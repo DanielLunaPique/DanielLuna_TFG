@@ -19,6 +19,13 @@ public class ControladorArmasFPS : MonoBehaviour
     [Header("Posición Base (Cadera)")]
     public Vector3 posicionBase = new Vector3(0, 0, 0);
 
+    [Header("Referencias de Audio")]
+    public GestorPasosFPS gestorPasos;
+    private float faseAnterior;
+
+    [Header("Referencias de Movimiento")]
+    public NetworkMovement movimientoRed;
+
     // Variables privadas
     private Vector3 posicionObjetivo;
     private Quaternion rotacionObjetivo;
@@ -118,12 +125,51 @@ public class ControladorArmasFPS : MonoBehaviour
 
         transform.localPosition = Vector3.Lerp(transform.localPosition, posicionFinal, Time.deltaTime * 8f);
         transform.localRotation = Quaternion.Slerp(transform.localRotation, rotacionFinal, Time.deltaTime * 8f);
+
+        bool seEstaMoviendo = (Mathf.Abs(Input.GetAxis("Horizontal")) + Mathf.Abs(Input.GetAxis("Vertical"))) > 0.1f;
+
+        if (movimientoRed.estaEnSuelo && seEstaMoviendo)
+        {
+            // Al apuntar, los pasos suelen ser un poco más lentos (frecuencia 0.7f por ejemplo)
+            float multiplicadorVelocidad = 1f;
+            if (Input.GetMouseButton(1)) {
+
+                multiplicadorVelocidad = 0.5f; // Apuntando es más pausado                         
+                tiempoBobbing += Time.deltaTime * velocidadBobbing * multiplicadorVelocidad;
+            } 
+
+            // Llamamos a la detección de pasos
+            DetectarPuntoDeImpacto();
+        }
+    }
+
+    private void DetectarPuntoDeImpacto()
+    {
+
+        if (movimientoRed == null || !movimientoRed.estaEnSuelo) return;
+        // Si estamos esprintando, el arma visual usa el doble de velocidad (* 2f).
+        // Así que le decimos al sonido que lea esa misma curva rápida.
+        float multiplicadorFase = movimiento.esprintandoRealmente ? 2f : 1f;
+
+        // Calculamos el punto más bajo en base a la animación real
+        float faseActual = Mathf.Sin(tiempoBobbing * multiplicadorFase);
+
+        // Cuando el arma llega abajo del todo (-0.95), damos el paso
+        if (faseActual < -0.95f && faseAnterior >= -0.95f)
+        {
+            if (gestorPasos != null)
+            {
+                gestorPasos.ReproducirSonidoPaso();
+            }
+        }
+
+        faseAnterior = faseActual;
     }
 
     // Recibe el booleano 'enMenu'
     void CalcularSway(bool enMenu)
     {
-        float multiplicadorApuntado = estaApuntando ? 0.1f : 1f;
+        float multiplicadorApuntado = estaApuntando ? 0.2f : 1f;
 
         float ratonX = 0f;
         float ratonY = 0f;

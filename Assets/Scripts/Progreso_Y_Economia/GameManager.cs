@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement; // <-- IMPORTANTE: Necesario para cambiar al menú
 
 public class GameManager : NetworkBehaviour
 {
@@ -13,7 +14,8 @@ public class GameManager : NetworkBehaviour
         RondaNormal,
         RondaEspecial,
         RondaAsedio,
-        RondaAguantar  
+        RondaAguantar,
+        Derrota // <-- NUEVO ESTADO AÑADIDO
     }
 
     [Header("Control de partida")]
@@ -24,10 +26,12 @@ public class GameManager : NetworkBehaviour
     public NetworkVariable<int> zombiesVivos = new NetworkVariable<int>();
     public NetworkVariable<int> zombiesPorGenerar = new NetworkVariable<int>();
 
-    [Header("Ajustes")]
+    [Header("Ajustes de Spawns")]
     public float tiempoPreparacion = 10f;
     public int spawnsSimultaneos = 5;
     public float tiempoEntreOleadas = 4f;
+    [Tooltip("El tiempo que tarda entre que sale un zombie y el siguiente de la misma oleada")]
+    public float tiempoEntreSpawnsAlternados = 0.5f;
 
     [Header("Prefab Zombie")]
     public GameObject prefabZombie;
@@ -43,7 +47,7 @@ public class GameManager : NetworkBehaviour
 
     // --- VARIABLES PARA EL LOCKDOWN ---
     private int zombiesGuardadosParaLuego = 0;
-    private AltarRitual altarActual; // Para avisarle cuando termine
+    private AltarRitual altarActual;
 
     private void Awake()
     {
@@ -56,13 +60,24 @@ public class GameManager : NetworkBehaviour
         if (IsServer) StartCoroutine(IniciarPrimeraRonda());
     }
 
+    private int CalcularZombiesPorRonda(int ronda)
+    {
+        int numJugadores = NetworkManager.Singleton.ConnectedClientsList.Count;
+        if (numJugadores <= 0) numJugadores = 1;
+
+        float curvaExponencial = Mathf.Pow(ronda, 1.5f);
+        int total = Mathf.FloorToInt(6 + (ronda * 2) + curvaExponencial) * numJugadores;
+
+        return Mathf.Min(total, 500);
+    }
+
     private IEnumerator IniciarPrimeraRonda()
     {
         estadoActual.Value = EstadoJuego.Preparacion;
         yield return new WaitForSeconds(2f);
 
         rondaActual.Value++;
-        zombiesPorGenerar.Value = rondaActual.Value * 5;
+        zombiesPorGenerar.Value = CalcularZombiesPorRonda(rondaActual.Value);
         estadoActual.Value = EstadoJuego.RondaNormal;
         StartCoroutine(RutinaGenerarZombies());
     }
@@ -76,7 +91,7 @@ public class GameManager : NetworkBehaviour
         yield return new WaitForSeconds(tiempoPreparacion);
 
         rondaActual.Value++;
-        zombiesPorGenerar.Value = rondaActual.Value * 5;
+        zombiesPorGenerar.Value = CalcularZombiesPorRonda(rondaActual.Value);
         estadoActual.Value = EstadoJuego.RondaNormal;
         StartCoroutine(RutinaGenerarZombies());
     }
@@ -119,6 +134,7 @@ public class GameManager : NetworkBehaviour
             for (int i = 0; i < zombiesEnEstaOleada; i++)
             {
                 GenerarUnZombieEnPunto(spawnsOrdenados[i].transform);
+                yield return new WaitForSeconds(tiempoEntreSpawnsAlternados);
             }
 
             yield return new WaitForSeconds(tiempoEntreOleadas);
@@ -139,7 +155,6 @@ public class GameManager : NetworkBehaviour
 
         zombiesVivos.Value--;
 
-        // Solo cambiamos de ronda si estamos en una ronda normal
         if (estadoActual.Value == EstadoJuego.RondaNormal || estadoActual.Value == EstadoJuego.RondaEspecial)
         {
             if (zombiesVivos.Value <= 0 && zombiesPorGenerar.Value <= 0)
@@ -161,7 +176,6 @@ public class GameManager : NetworkBehaviour
         estadoActual.Value = EstadoJuego.RondaAguantar;
         zombiesGuardadosParaLuego = zombiesPorGenerar.Value + zombiesVivos.Value;
 
-        // Limpiamos la arena pacíficamente antes de empezar
         GameObject[] todosLosZombis = GameObject.FindGameObjectsWithTag("Zombie");
         foreach (GameObject z in todosLosZombis)
         {
@@ -201,23 +215,19 @@ public class GameManager : NetworkBehaviour
                 for (int i = 0; i < cantidadASpawnear; i++)
                 {
                     PuntoSpawnZombie spawnElegido = spawns[Random.Range(0, spawns.Count)];
-
-                    // 1. Lo creamos físicamente en el mundo
                     GameObject nuevoZombie = Instantiate(prefabZombie, spawnElegido.transform.position, spawnElegido.transform.rotation);
 
-                    // 2. GAME FEEL: Le hackeamos el cerebro ANTES de conectarlo a la red
                     if (nuevoZombie.TryGetComponent(out ZombieIA ia))
                     {
                         ia.velocidadBaseInicial = ia.velocidadMaxima;
                     }
 
-                    // 3. AHORA SÍ, lo mandamos a la red. Al nacer, hará sus cálculos usando la velocidad máxima.
                     nuevoZombie.GetComponent<NetworkObject>().Spawn(true);
-
                     zombiesVivos.Value++;
+
+                    yield return new WaitForSeconds(tiempoEntreSpawnsAlternados);
                 }
             }
-
             yield return new WaitForSeconds(1.0f);
         }
     }
@@ -228,22 +238,15 @@ public class GameManager : NetworkBehaviour
 
         if (altarActual != null) altarActual.CompletarRitual();
 
-        // ==========================================
-        // GAME FEEL 2: MATAMOS A TODOS DE FORMA CINEMATOGRÁFICA
-        // ==========================================
         GameObject[] todosLosZombis = GameObject.FindGameObjectsWithTag("Zombie");
         foreach (GameObject z in todosLosZombis)
         {
-            // Usamos tu función TakeDamageServerRpc, le pasamos daño infinito y ID 0 (no le da dinero a nadie)
             if (z.TryGetComponent(out Zombie scriptZombie))
             {
                 scriptZombie.TakeDamageServerRpc(99999, 0, false);
             }
         }
 
-        // Tu script Zombie.cs ya tiene un 'yield return new WaitForSeconds(3f)' interno antes de desaparecer.
-        // Aun así, hacemos que el GameManager espere 4 segundos antes de volver a spawnear zombies normales
-        // para dar un respiro visual.
         yield return new WaitForSeconds(4f);
 
         zombiesVivos.Value = 0;
@@ -252,5 +255,84 @@ public class GameManager : NetworkBehaviour
         estadoActual.Value = EstadoJuego.RondaNormal;
         StartCoroutine(RutinaGenerarZombies());
     }
-    public void ComprobarEstadoEquipo() { /* Tu código de gameOver */ }
+
+    // ==========================================
+    // SISTEMA DE DERROTA Y CÁMARA CINEMATOGRÁFICA
+    // ==========================================
+
+    /// <summary>
+    /// Esta función la debe llamar el script de vida del jugador cuando muere.
+    /// Pásale la posición del jugador en el momento de morir.
+    /// </summary>
+    public void ComprobarEstadoEquipo(Vector3 posicionMuerte)
+    {
+        if (!IsServer) return;
+
+        // Si ya hemos perdido, no ejecutamos esto 20 veces
+        if (estadoActual.Value == EstadoJuego.Derrota) return;
+
+        // Comprobamos si el equipo entero ha muerto. 
+        // (Asumo que esta función solo se llama cuando ya no quedan vivos, 
+        // o si prefieres, añade aquí un bucle for que cuente la vida de todos).
+
+        estadoActual.Value = EstadoJuego.Derrota;
+
+        // Le mandamos a TODOS los jugadores la señal para ejecutar la animación
+        MostrarAnimacionDerrotaClientRpc(posicionMuerte);
+    }
+
+    [ClientRpc]
+    private void MostrarAnimacionDerrotaClientRpc(Vector3 posicionMuerte)
+    {
+        StartCoroutine(RutinaAnimacionDerrota(posicionMuerte));
+    }
+
+    private IEnumerator RutinaAnimacionDerrota(Vector3 posicionInicial)
+    {
+        // 1. Apagamos todas las cámaras de los jugadores para que no interfieran
+        Camera[] camaras = FindObjectsOfType<Camera>();
+        foreach (Camera cam in camaras)
+        {
+            cam.enabled = false;
+            // Apagamos también los audífonos para que Unity no se queje de "2 AudioListeners"
+            if (cam.gameObject.TryGetComponent(out AudioListener al)) al.enabled = false;
+        }
+
+        // 2. Creamos una nueva cámara de la nada en el punto de la muerte
+        GameObject camaraCinematica = new GameObject("CamaraDerrota_Cinematica");
+        camaraCinematica.AddComponent<Camera>();
+        camaraCinematica.AddComponent<AudioListener>();
+
+        // Empezamos 1 metro por encima del cuerpo, mirando hacia abajo para el dramatismo
+        Vector3 posicionInicio = posicionInicial + Vector3.up * 5f;
+        camaraCinematica.transform.position = posicionInicio;
+        camaraCinematica.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+        // 3. Animamos la cámara subiendo lentamente durante 4.5 segundos
+        float duracionAnimacion = 7f;
+        float tiempoPasado = 0f;
+
+        // Destino: 3 metros por encima de donde empezó
+        Vector3 posicionDestino = posicionInicio + Vector3.up * 3f;
+
+        while (tiempoPasado < duracionAnimacion)
+        {
+            camaraCinematica.transform.position = Vector3.Lerp(posicionInicio, posicionDestino, tiempoPasado / duracionAnimacion);
+            tiempoPasado += Time.deltaTime;
+            yield return null;
+        }
+
+        // 4. Se acabó el show. Apagamos los servidores de forma limpia
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.Shutdown();
+        }
+
+        // 5. Destruimos al propio GameManager para evitar problemas de duplicados al reconectar
+        Destroy(gameObject);
+
+        // 6. Volvemos al menú principal.
+        // OJO: Asegúrate de que tu escena de menú se llame EXACTAMENTE así en el Build Settings
+        SceneManager.LoadScene("Main Menu");
+    }
 }

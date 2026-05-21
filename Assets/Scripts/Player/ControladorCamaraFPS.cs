@@ -44,6 +44,7 @@ public class ControladorCamaraFPS : MonoBehaviour
 
     void Update()
     {
+        if (InGameMenu.MenuAbierto) return;
         float inputRatonX = Input.GetAxis("Mouse X") * sensibilidadRaton;
         float inputRatonY = Input.GetAxis("Mouse Y") * sensibilidadRaton;
 

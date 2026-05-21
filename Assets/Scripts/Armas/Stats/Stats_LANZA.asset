@@ -15,6 +15,10 @@ MonoBehaviour:
   nombreArma: LANZA
   prefabArma: {fileID: 5703203649118065775, guid: a2c7f418716e9474a9ddf59d28edcd2b, type: 3}
   prefabVisualCaja: {fileID: 1247882308176086331, guid: 44b3859bc5df1734dbe74571c4b0a6c8, type: 3}
+  efectoFogonazo: {fileID: 2965222256817593503, guid: a164e676dbbd6e54587237e619372c98, type: 3}
+  sonidoDisparo: {fileID: 8300000, guid: f08b00e74bcd95f42b162996106d2183, type: 3}
+  pitchMinimo: 0.95
+  pitchMaximo: 1.05
   "da\xF1o": 280
   cadenciaDisparo: 1.5
   balasCargador: 6

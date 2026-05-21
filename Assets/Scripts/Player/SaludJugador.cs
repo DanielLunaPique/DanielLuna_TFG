@@ -23,10 +23,23 @@ public class SaludJugador : NetworkBehaviour
     public Image[] gotasDeSangre;
     public float velocidadFadeGotas = 0.5f;
 
-    [Header("Efectos de Audio")]
+    [Header("Componentes de Audio")]
     public AudioSource audioCorazon;
+    public AudioSource audioEfectos;
+
+    [Header("Archivos de Audio")]
+    [Tooltip("El sonido del latido del corazón (Largo, sin loop)")]
+    public AudioClip clipCorazon;
+
+    [Tooltip("El sonido de desgarro/golpe que suena SIEMPRE al recibir daño")]
+    public AudioClip sonidoImpacto;
+
+    [Tooltip("Probabilidad de que el personaje hable/gruña usando el SistemaVoces (0.0 a 1.0)")]
+    [Range(0f, 1f)] public float probabilidadQueja = 0.5f;
 
     private UIManager uiManagerLocal;
+    private SistemaVoces sistemaVocesLocal;
+    private Coroutine coroutineCorazon;
 
     public override void OnNetworkSpawn()
     {
@@ -36,10 +49,16 @@ public class SaludJugador : NetworkBehaviour
             estaMuerto = false;
         }
 
-        // Buscamos el UIManager estrictamente dentro de ESTE jugador, no en toda la escena
         uiManagerLocal = GetComponentInChildren<UIManager>(true);
+        sistemaVocesLocal = GetComponent<SistemaVoces>();
 
         saludActual.OnValueChanged += AlCambiarSalud;
+
+        if (audioCorazon != null && clipCorazon != null)
+        {
+            audioCorazon.clip = clipCorazon;
+            audioCorazon.loop = false;
+        }
     }
 
     public override void OnNetworkDespawn()
@@ -59,26 +78,33 @@ public class SaludJugador : NetworkBehaviour
         {
             saludActual.Value = 0;
             estaMuerto = true;
-            GameManager.Instance.ComprobarEstadoEquipo();
+            GameManager.Instance.ComprobarEstadoEquipo(transform.position);
         }
     }
 
     private void AlCambiarSalud(int vidaAnterior, int vidaNueva)
     {
-        // Efectos Visuales (Solo para el dueño)
-        if (IsOwner && vidaNueva < vidaAnterior && !estaMuerto)
-        {
-            GetComponent<SistemaVoces>().ReproducirFrase(SistemaVoces.TipoVoz.Herido);
+        if (!IsOwner) return;
 
+        // 1. --- LÓGICA DE RECIBIR DAÑO ---
+        if (vidaNueva < vidaAnterior && !estaMuerto)
+        {
+            // A) Efectos de Audio
+            if (audioEfectos != null && sonidoImpacto != null)
+            {
+                audioEfectos.PlayOneShot(sonidoImpacto, 1f);
+            }
+
+            if (sistemaVocesLocal != null && Random.value <= probabilidadQueja)
+            {
+                sistemaVocesLocal.ReproducirFrase(SistemaVoces.TipoVoz.Herido);
+            }
+
+            // B) Efectos Visuales (EXACTAMENTE COMO LO TENÍAS TÚ)
             if (uiManagerLocal != null && uiManagerLocal.menuTiendaAbierto)
             {
-                // Cerramos el menú a la fuerza
                 uiManagerLocal.CerrarMenuTiendaMedica();
-
-                // Le volvemos a poner el texto de la 'E' por si quiere volver a intentarlo
                 uiManagerLocal.MostrarTextoInteraccion("Mantén [E] para Tienda Médica");
-
-                Debug.LogWarning("¡Un zombie te ha interrumpido mientras intentabas revivir!");
             }
 
             if (destelloRojo != null)
@@ -88,15 +114,36 @@ public class SaludJugador : NetworkBehaviour
                 destelloRojo.color = c;
             }
 
+            // La lógica original de la sangre
             if (vidaNueva <= 20)
             {
                 MostrarGotas(gotasDeSangre.Length);
-                if (audioCorazon != null && !audioCorazon.isPlaying) audioCorazon.Play();
             }
-            else MostrarGotas(gotasDeSangre.Length / 2);
+            else
+            {
+                MostrarGotas(gotasDeSangre.Length / 2);
+            }
         }
 
-        // Lógica Universal de Muerte
+        // 2. --- LÓGICA DEL CORAZÓN (Se evalúa para encender y apagar) ---
+        if (vidaNueva > 0 && vidaNueva <= 20 && !estaMuerto)
+        {
+            if (audioCorazon != null && !audioCorazon.isPlaying && clipCorazon != null)
+            {
+                if (coroutineCorazon != null) StopCoroutine(coroutineCorazon);
+                coroutineCorazon = StartCoroutine(FadeCorazon(true));
+            }
+        }
+        else
+        {
+            if (audioCorazon != null && audioCorazon.isPlaying)
+            {
+                if (coroutineCorazon != null) StopCoroutine(coroutineCorazon);
+                coroutineCorazon = StartCoroutine(FadeCorazon(false));
+            }
+        }
+
+        // 3. --- LÓGICA UNIVERSAL DE MUERTE ---
         if (vidaNueva <= 0 && vidaAnterior > 0)
         {
             EjecutarMuerteLocal();
@@ -110,10 +157,7 @@ public class SaludJugador : NetworkBehaviour
 
         ConvertirseEnFantasma();
 
-        if (IsOwner)
-        {
-            CambiarEspectador(0);
-        }
+        if (IsOwner) CambiarEspectador(0);
     }
 
     private void ConvertirseEnFantasma()
@@ -133,7 +177,6 @@ public class SaludJugador : NetworkBehaviour
         ControladorCamaraFPS camFPS = GetComponentInChildren<ControladorCamaraFPS>(true);
         if (camFPS != null) camFPS.enabled = false;
 
-        // APAGADO NUCLEAR: Apagamos todos los renderers (animados y estáticos)
         foreach (Renderer malla in GetComponentsInChildren<Renderer>(true))
         {
             malla.enabled = false;
@@ -144,7 +187,39 @@ public class SaludJugador : NetworkBehaviour
             if (mov.objetoBrazosFPS != null) mov.objetoBrazosFPS.SetActive(false);
             if (mov.armaManos != null) mov.armaManos.SetActive(false);
         }
+    }
 
+    private System.Collections.IEnumerator FadeCorazon(bool activar)
+    {
+        float tiempoTransicion = 0.25f;
+        float tiempoPasado = 0f;
+
+        if (activar)
+        {
+            audioCorazon.volume = 0f;
+            audioCorazon.Play();
+
+            while (tiempoPasado < tiempoTransicion)
+            {
+                tiempoPasado += Time.deltaTime;
+                audioCorazon.volume = Mathf.Lerp(0f, 1f, tiempoPasado / tiempoTransicion);
+                yield return null;
+            }
+            audioCorazon.volume = 1f;
+        }
+        else
+        {
+            float volumenInicial = audioCorazon.volume;
+
+            while (tiempoPasado < tiempoTransicion)
+            {
+                tiempoPasado += Time.deltaTime;
+                audioCorazon.volume = Mathf.Lerp(volumenInicial, 0f, tiempoPasado / tiempoTransicion);
+                yield return null;
+            }
+            audioCorazon.volume = 0f;
+            audioCorazon.Stop();
+        }
     }
 
     // ==========================================
@@ -154,20 +229,13 @@ public class SaludJugador : NetworkBehaviour
     public void EjecutarRevivirClientRpc(Vector3 posSpawn, Quaternion rotSpawn)
     {
         estaMuerto = false;
-        
-        // 1. Reconstruimos el cuerpo físico para todas las pantallas
         RestaurarCuerpoFisico(posSpawn, rotSpawn);
 
-        // 2. Si soy YO el revivido, me lanzo mi cinemática de despertar
-        if (IsOwner)
-        {
-            StartCoroutine(CinematicaDespertar());
-        }
+        if (IsOwner) StartCoroutine(CinematicaDespertar());
     }
 
     private void RestaurarCuerpoFisico(Vector3 pos, Quaternion rot)
     {
-        // Para teletransportar un CharacterController sin que falle, HAY QUE APAGARLO PRIMERO
         CharacterController cc = GetComponent<CharacterController>();
         if (cc != null)
         {
@@ -177,11 +245,9 @@ public class SaludJugador : NetworkBehaviour
             cc.enabled = true;
         }
 
-        // Encendemos colisiones
         Collider col = GetComponent<Collider>();
         if (col != null) col.enabled = true;
 
-        // Encendemos su modelo 3D
         foreach (Renderer malla in GetComponentsInChildren<Renderer>(true))
         {
             malla.enabled = true;
@@ -190,19 +256,17 @@ public class SaludJugador : NetworkBehaviour
 
     private System.Collections.IEnumerator CinematicaDespertar()
     {
-        // 1. Apagamos la pantalla negra de "Espectando"
         if (uiManagerLocal != null) uiManagerLocal.OcultarHUDModuloEspectador();
 
-        // 2. Rescatamos nuestras cámaras de la cabeza del otro jugador
         NetworkMovement miMov = GetComponent<NetworkMovement>();
         Transform miCuello = transform.Find("Camera Root");
-        
+
         if (miMov != null && miCuello != null)
         {
             if (miMov.camaraPrincipal != null)
             {
                 miMov.camaraPrincipal.transform.SetParent(miCuello);
-                miMov.camaraPrincipal.transform.localPosition = Vector3.zero; 
+                miMov.camaraPrincipal.transform.localPosition = Vector3.zero;
                 miMov.camaraPrincipal.transform.localRotation = Quaternion.identity;
             }
             if (miMov.camaraArma != null)
@@ -213,34 +277,27 @@ public class SaludJugador : NetworkBehaviour
             }
         }
 
-        // 3. Encendemos los brazos de primera persona
         if (miMov != null)
         {
             if (miMov.objetoBrazosFPS != null) miMov.objetoBrazosFPS.SetActive(true);
             if (miMov.armaManos != null) miMov.armaManos.SetActive(true);
         }
 
-        // 4. Lanzamos la animación de Mixamo en nuestro cuerpo 
-        // (Asegúrate de tener el Trigger "Revive" en el Animator de 3ª persona)
         Animator anim = GetComponentInChildren<Animator>(true);
         if (anim != null) anim.SetTrigger("Revive");
 
-        // 5. ¡CONGELAMOS AL JUGADOR MIENTRAS SE LEVANTA!
         if (miMov != null) miMov.enabled = false;
-        
+
         ControladorArmasFPS armas = GetComponentInChildren<ControladorArmasFPS>(true);
         if (armas != null) armas.enabled = false;
-        
-        // Esperamos a que la animación de Mixamo termine de reproducirse
-        yield return new WaitForSeconds(2.5f); // <-- Ajusta este tiempo si tu animación dura más o menos
 
-        // 6. ¡DEVOLVEMOS EL CONTROL TOTAL PARA SALIR DE LA TIENDA!
+        yield return new WaitForSeconds(2.5f);
+
         if (miMov != null) miMov.enabled = true;
         if (armas != null) armas.enabled = true;
 
-        // 7. Le decimos al inventario que vuelva a sacar el arma visible
         InventarioArmas miInventario = GetComponentInChildren<InventarioArmas>(true);
-        if (miInventario != null) miInventario.RecibirNuevaArma(miInventario.armaPorDefecto); // O la función que uses
+        if (miInventario != null) miInventario.RecibirNuevaArma(miInventario.armaPorDefecto);
 
         ControladorCamaraFPS camFPS = GetComponentInChildren<ControladorCamaraFPS>(true);
         if (camFPS != null) camFPS.enabled = true;
@@ -273,17 +330,15 @@ public class SaludJugador : NetworkBehaviour
 
         if (cabeza != null && miMov != null && miMov.camaraPrincipal != null)
         {
-            // 1. Movemos la cámara principal
             miMov.camaraPrincipal.transform.SetParent(cabeza);
             miMov.camaraPrincipal.SetActive(true);
             miMov.camaraPrincipal.transform.localPosition = new Vector3(0.7f, 1.5f, -2.5f);
             miMov.camaraPrincipal.transform.localRotation = Quaternion.identity;
 
-            // 2. NUEVO: Movemos la Weapon Camera porque TU UI está dentro de ella
             if (miMov.camaraArma != null)
             {
                 miMov.camaraArma.transform.SetParent(cabeza);
-                miMov.camaraArma.SetActive(true); // La obligamos a encenderse por si acaso
+                miMov.camaraArma.SetActive(true);
                 miMov.camaraArma.transform.localPosition = new Vector3(0.7f, 1f, -1.5f);
                 miMov.camaraArma.transform.localRotation = Quaternion.identity;
             }
@@ -322,6 +377,7 @@ public class SaludJugador : NetworkBehaviour
     {
         if (estaMuerto || saludActual.Value >= saludMaxima) return;
         contadorRegen += Time.deltaTime;
+
         if (contadorRegen >= tiempoEsperaRegen)
         {
             acumuladorSalud += puntosPorSegundo * Time.deltaTime;
@@ -330,13 +386,13 @@ public class SaludJugador : NetworkBehaviour
                 int puntos = Mathf.FloorToInt(acumuladorSalud);
                 saludActual.Value = Mathf.Min(saludActual.Value + puntos, saludMaxima);
                 acumuladorSalud -= puntos;
-                if (saludActual.Value > 20 && audioCorazon.isPlaying) audioCorazon.Stop();
             }
         }
     }
 
     private void ManejarEfectosVisuales()
     {
+        // Esto también queda intacto como lo tenías
         if (destelloRojo != null && destelloRojo.color.a > 0)
         {
             Color c = destelloRojo.color;

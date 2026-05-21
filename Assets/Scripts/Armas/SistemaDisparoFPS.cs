@@ -37,7 +37,7 @@ public class SistemaDisparoFPS : MonoBehaviour
         // Si no tenemos arma, no hacemos nada
         if (controladorFPS == null || controladorFPS.armaActual == null) return;
 
-        if (controladorFPS.estaRecargando || disparandoRafaga) return;
+        if (controladorFPS.estaRecargando || disparandoRafaga || InGameMenu.MenuAbierto) return;
 
         DatosArma arma = controladorFPS.armaActual;
         EstadisticasArma stats = arma.estadisticas;
@@ -119,7 +119,7 @@ public class SistemaDisparoFPS : MonoBehaviour
 
         Ray rayo = new Ray(camaraPrincipal.transform.position, direccionConDispersion.normalized);
 
-        RaycastHit[] impactos = Physics.RaycastAll(rayo, distanciaDisparo, ~capaIgnorar);
+        RaycastHit[] impactos = Physics.RaycastAll(rayo, distanciaDisparo, ~capaIgnorar, QueryTriggerInteraction.Ignore);
 
         // Si hemos chocado con al menos una cosa...
         if (impactos.Length > 0)
