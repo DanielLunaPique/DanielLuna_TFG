@@ -23,6 +23,7 @@ MonoBehaviour:
   cadenciaDisparo: 0.068
   balasCargador: 40
   tiempoRecarga: 1.9
+  sonidoRecarga: {fileID: 8300000, guid: 84f45f2bdb6d82c41bd432915e3a6fad, type: 3}
   modoDisparo: 0
   balasPorRafaga: 3
   alcance: 170

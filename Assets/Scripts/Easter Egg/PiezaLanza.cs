@@ -4,7 +4,13 @@ using Unity.Netcode;
 public class PiezaLanza : NetworkBehaviour
 {
     public string idMisionRequerida = "BuscarPiezas";
+
+    [Header("Audio del Mundo (Físico)")]
     public AudioClip sonidoRecogida;
+
+    [Header("Audio del Personaje (Voz)")]
+    [Tooltip("La frase que dirá el jugador al recoger esta pieza específica")]
+    public AudioClip frasePersonajeAlRecoger;
 
     private bool jugadorCerca = false;
     private UIManager uiLocal;
@@ -13,7 +19,6 @@ public class PiezaLanza : NetworkBehaviour
     {
         if (other.CompareTag("Player") && other.GetComponent<NetworkObject>().IsOwner)
         {
-            // Solo mostramos el mensaje si el QuestManager dice que toca buscar piezas
             if (QuestManager.Instance.idPasoActual.Value.ToString() == idMisionRequerida)
             {
                 jugadorCerca = true;
@@ -36,26 +41,41 @@ public class PiezaLanza : NetworkBehaviour
     {
         if (jugadorCerca && Input.GetKeyDown(KeyCode.E))
         {
-            RecogerPiezaServerRpc();
+            if (uiLocal != null) uiLocal.OcultarTextoInteraccion();
+
+            // --- MATRÍCULA DEL CUERPO ---
+            ulong miCuerpoID = NetworkManager.Singleton.LocalClient.PlayerObject.NetworkObjectId;
+            RecogerPiezaServerRpc(miCuerpoID);
         }
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void RecogerPiezaServerRpc()
+    private void RecogerPiezaServerRpc(ulong idCuerpo)
     {
-        // 1. Avisamos al contador global
         QuestStepRecolectar.Instance.NotificarPiezaRecogidaServer();
 
-        // 2. Reproducimos sonido y destruimos el objeto en red
+        // 1. Lanzamos el combo de audios
+        EventosDeAudioClientRpc(idCuerpo, transform.position);
+
+        // 2. Destruimos la pieza
+        GetComponent<NetworkObject>().Despawn(true);
+    }
+
+    [ClientRpc]
+    private void EventosDeAudioClientRpc(ulong idCuerpo, Vector3 posicion)
+    {
         if (sonidoRecogida != null)
         {
-            // Aquí podrías usar un ClientRpc para el sonido, o PlayClipAtPoint
-            AudioSource.PlayClipAtPoint(sonidoRecogida, transform.position);
+            AudioSource.PlayClipAtPoint(sonidoRecogida, posicion);
         }
 
-        uiLocal.OcultarTextoInteraccion();
-
-        // Desaparece de la red para todos
-        GetComponent<NetworkObject>().Despawn(true);
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(idCuerpo, out NetworkObject objetoJugador))
+        {
+            SistemaVoces voces = objetoJugador.GetComponent<SistemaVoces>();
+            if (voces != null)
+            {
+                voces.ReproducirFraseEspecificaVip(frasePersonajeAlRecoger);
+            }
+        }
     }
 }

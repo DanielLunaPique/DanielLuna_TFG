@@ -54,8 +54,8 @@ public class SistemaPuntosFPS : NetworkBehaviour
         }
         else
         {
-            // 3. Chivato de denegación con matemáticas claras
-            //Debug.LogWarning($"[BANCO] Compra DENEGADA. Faltan puntos. Tengo: {puntos.Value} | Cuesta: {coste}");
+            SistemaVoces misVoces = GetComponent<SistemaVoces>();
+            misVoces.ReproducirFrase(SistemaVoces.TipoVoz.SinPuntos);
             return false;
         }
     }

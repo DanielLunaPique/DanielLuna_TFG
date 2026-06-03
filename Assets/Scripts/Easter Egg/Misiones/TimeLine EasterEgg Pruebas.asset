@@ -14,6 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::QuestTimeline
   secuencia:
   - tipo: 0
+    pasoFijo: {fileID: 11400000, guid: 9e13ee15c3a2f7049a0446cd700dc16c, type: 2}
+    poolAleatorio: []
+    probabilidadDeActivacion: 100
+  - tipo: 0
     pasoFijo: {fileID: 11400000, guid: 5f3b03af72d6da5449471bf7af40d700, type: 2}
     poolAleatorio: []
     probabilidadDeActivacion: 100

@@ -87,7 +87,7 @@ public class UIManager : MonoBehaviour
     // ==========================================
     private void ActualizarTextoPuntos(int valorViejo, int valorNuevo)
     {
-        if (textoPuntos != null) textoPuntos.text = $"$ {valorNuevo}";
+        if (textoPuntos != null) textoPuntos.text = $"{valorNuevo}";
     }
 
     private void ActualizarTextoRonda(int rondaAnterior, int rondaNueva)

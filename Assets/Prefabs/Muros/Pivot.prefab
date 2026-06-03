@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8189408305711569669}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Pivot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -84,13 +84,47 @@ PrefabInstance:
       propertyPath: m_Name
       value: Muro_Laberinto
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 9206234458292541092, guid: 42f94261be63a504b8e86eedf46a2adc, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 7520580263776018239, guid: 42f94261be63a504b8e86eedf46a2adc, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 9206234458292541092, guid: 42f94261be63a504b8e86eedf46a2adc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 354501951413444595}
   m_SourcePrefab: {fileID: 100100000, guid: 42f94261be63a504b8e86eedf46a2adc, type: 3}
 --- !u!4 &4012270729368474572 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3675205685413848297, guid: 42f94261be63a504b8e86eedf46a2adc, type: 3}
   m_PrefabInstance: {fileID: 337355323648128805}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &8893935914793755009 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9206234458292541092, guid: 42f94261be63a504b8e86eedf46a2adc, type: 3}
+  m_PrefabInstance: {fileID: 337355323648128805}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &354501951413444595
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8893935914793755009}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.9, y: 4.22, z: 3}
+  m_Center: {x: 0, y: 2.11, z: 0}

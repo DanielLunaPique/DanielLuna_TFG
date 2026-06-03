@@ -8,13 +8,19 @@ public class PuertaDesbloqueable : NetworkBehaviour
     public int coste = 1000;
 
     [Header("Bloqueo por Misión (Easter Egg)")]
-    [Tooltip("¿Esta puerta está bloqueada hasta cierto punto de la partida?")]
     public bool requierePasoHistoria = false;
-    [Tooltip("El índice de la Línea de Tiempo en el que se desbloquea esta puerta (Ej: 2)")]
     public int indiceTimelineDesbloqueo = 2;
 
     [Header("Conexión de Zonas")]
     public ZonaZombies[] zonasADesbloquear;
+
+    [Header("Audio del Mundo (Físico)")]
+    public AudioClip sonidoAbrirPuerta;
+    public AudioClip sonidoAccesoDenegado;
+
+    [Header("Audio del Personaje (Voz)")]
+    [Tooltip("Probabilidad de que el personaje diga una frase al abrir la puerta (0.0 a 1.0)")]
+    [Range(0f, 1f)] public float probabilidadFrase = 0.6f;
 
     public NetworkVariable<bool> estaAbierta = new NetworkVariable<bool>(false);
 
@@ -27,15 +33,16 @@ public class PuertaDesbloqueable : NetworkBehaviour
         {
             if (Input.GetKeyDown(KeyCode.E))
             {
-                // ESCUDO: Si está bloqueada por la historia, ignoramos el botón "E" por completo
                 if (EstaBloqueadaPorHistoria())
                 {
-                    // Opcional: Aquí podrías reproducir un sonido de "Error/Acceso Denegado"
+                    if (sonidoAccesoDenegado != null)
+                        AudioSource.PlayClipAtPoint(sonidoAccesoDenegado, transform.position);
                     return;
                 }
 
-                ulong miDNI = NetworkManager.Singleton.LocalClientId;
-                ComprarPuertaServerRpc(miDNI);
+                // --- LA CORRECCIÓN: Matrícula del cuerpo, no de la conexión ---
+                ulong miCuerpoID = NetworkManager.Singleton.LocalClient.PlayerObject.NetworkObjectId;
+                ComprarPuertaServerRpc(miCuerpoID);
             }
         }
     }
@@ -52,16 +59,8 @@ public class PuertaDesbloqueable : NetworkBehaviour
 
             if (uiManagerLocal != null)
             {
-                // Verificamos si la puerta está bloqueada por el Easter Egg
-                if (EstaBloqueadaPorHistoria())
-                {
-                    MostrarTextoDeBloqueo();
-                }
-                else
-                {
-                    // Si no está bloqueada (o ya hemos pasado esa fase), mostramos la compra normal
-                    uiManagerLocal.MostrarTextoInteraccion($"Pulsa [E] para abrir el paso a {nombreZona} [Coste: {coste} pts]");
-                }
+                if (EstaBloqueadaPorHistoria()) MostrarTextoDeBloqueo();
+                else uiManagerLocal.MostrarTextoInteraccion($"Pulsa [E] para abrir el paso a {nombreZona} [Coste: {coste} pts]");
             }
         }
     }
@@ -72,7 +71,6 @@ public class PuertaDesbloqueable : NetworkBehaviour
         if (netObj != null && netObj.IsLocalPlayer)
         {
             jugadorEnZona = false;
-
             if (uiManagerLocal != null)
             {
                 uiManagerLocal.OcultarTextoInteraccion();
@@ -81,13 +79,9 @@ public class PuertaDesbloqueable : NetworkBehaviour
         }
     }
 
-    // --- FUNCIONES DE LÓGICA DE HISTORIA ---
-
     private bool EstaBloqueadaPorHistoria()
     {
         if (!requierePasoHistoria || QuestManager.Instance == null) return false;
-
-        // Retorna TRUE si nuestro nivel en la partida es menor al que pide la puerta
         return QuestManager.Instance.indiceTimeline.Value < indiceTimelineDesbloqueo;
     }
 
@@ -96,47 +90,62 @@ public class PuertaDesbloqueable : NetworkBehaviour
         string misionActual = QuestManager.Instance.idPasoActual.Value.ToString();
         string textoRechazo = "<color=red>[ACCESO DENEGADO]</color> ";
 
-        if (misionActual == "Tarjeta")
-            textoRechazo += "Se requiere Tarjeta de Acceso.";
-        else if (misionActual == "Hackeo")
-            textoRechazo += "Se requiere Anulación de Seguridad.";
-        else if (misionActual == "BuscarPiezas")
-            textoRechazo += "Encuentra las piezas del bastón primero.";
-        else
-            textoRechazo += "Sistemas de energía inestables.";
+        if (misionActual == "Tarjeta") textoRechazo += "Se requiere Tarjeta de Acceso.";
+        else if (misionActual == "Hackeo") textoRechazo += "Se requiere Anulación de Seguridad.";
+        else if (misionActual == "BuscarPiezas") textoRechazo += "Encuentra las piezas del bastón primero.";
+        else textoRechazo += "Sistemas de energía inestables.";
 
         uiManagerLocal.MostrarTextoInteraccion(textoRechazo);
     }
 
-    // --- FUNCIONES DE RED ---
-
     [ServerRpc(RequireOwnership = false)]
-    public void ComprarPuertaServerRpc(ulong idComprador)
+    public void ComprarPuertaServerRpc(ulong idCuerpo)
     {
-        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(idComprador, out var cliente)) return;
-
-        var jugador = cliente.PlayerObject;
-        if (jugador == null) return;
-
-        SistemaPuntosFPS bolsillo = jugador.GetComponentInChildren<SistemaPuntosFPS>();
-        if (bolsillo == null) return;
-
-        if (bolsillo.IntentarComprar(coste))
+        // En lugar del ID de conexión, usamos la lógica anterior pero mandando el idCuerpo al ClientRpc
+        // Buscamos al comprador mirando a quién pertenece este cuerpo para quitarle el dinero
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(idCuerpo, out NetworkObject objetoJugador))
         {
-            estaAbierta.Value = true;
+            SistemaPuntosFPS bolsillo = objetoJugador.GetComponentInChildren<SistemaPuntosFPS>();
+            if (bolsillo == null) return;
 
-            foreach (ZonaZombies zona in zonasADesbloquear)
+            if (bolsillo.IntentarComprar(coste))
             {
-                if (zona != null)
+                estaAbierta.Value = true;
+
+                foreach (ZonaZombies zona in zonasADesbloquear)
                 {
-                    zona.estaActiva = true;
+                    if (zona != null) zona.estaActiva = true;
                 }
-            }
 
-            NetworkObject netObj = GetComponent<NetworkObject>();
-            if (netObj != null && netObj.IsSpawned)
+                // 1. Mandamos el evento de audio
+                EventosDeAudioClientRpc(idCuerpo, transform.position);
+
+                // 2. Destruimos la puerta directamente
+                NetworkObject netObj = GetComponent<NetworkObject>();
+                if (netObj != null && netObj.IsSpawned) netObj.Despawn();
+            }
+        }
+    }
+
+    [ClientRpc]
+    private void EventosDeAudioClientRpc(ulong idCuerpo, Vector3 posicionPuerta)
+    {
+        if (sonidoAbrirPuerta != null)
+        {
+            AudioSource.PlayClipAtPoint(sonidoAbrirPuerta, posicionPuerta);
+        }
+
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(idCuerpo, out NetworkObject objetoJugador))
+        {
+            SistemaVoces voces = objetoJugador.GetComponent<SistemaVoces>();
+
+            // Solo el dueño tira el dado para hablar
+            if (voces != null && voces.IsOwner)
             {
-                netObj.Despawn();
+                if (Random.value <= probabilidadFrase)
+                {
+                    voces.ReproducirFrase(SistemaVoces.TipoVoz.AbrirPuertas);
+                }
             }
         }
     }

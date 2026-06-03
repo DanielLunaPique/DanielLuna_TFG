@@ -19566,7 +19566,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PiezaLanza
   ShowTopMostFoldoutHeaderGroup: 1
   idMisionRequerida: BuscarPiezas
-  sonidoRecogida: {fileID: 0}
+  sonidoRecogida: {fileID: 8300000, guid: 0dae9c5b81835ed4790135ce09f48d8d, type: 3}
+  frasePersonajeAlRecoger: {fileID: 8300000, guid: 50934db73eb0d9e41b89b3831ae6ff03, type: 3}
 --- !u!65 &3967927912590579728
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -24447,6 +24448,10 @@ PrefabInstance:
     - target: {fileID: 201044131651908394, guid: 990f5fe83f8bb3d4fb018b79c1965efd, type: 3}
       propertyPath: velocidadRotacion
       value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 6275845821792886860, guid: 990f5fe83f8bb3d4fb018b79c1965efd, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 924004433
       objectReference: {fileID: 0}
     - target: {fileID: 7772698142291654483, guid: 990f5fe83f8bb3d4fb018b79c1965efd, type: 3}
       propertyPath: m_Name

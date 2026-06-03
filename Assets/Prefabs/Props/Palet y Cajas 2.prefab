@@ -134,8 +134,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2.2130542, y: 1.081816, z: 1.7726789}
-  m_Center: {x: -0.000000059604645, y: 0, z: 0}
+  m_Size: {x: 2.2130542, y: 1.7553165, z: 1.7726789}
+  m_Center: {x: -0.00000007947286, y: 0.33674973, z: 0}
 --- !u!4 &2772725261325672083 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4000013978381734, guid: fe9a19d4f0d796c40bf4fc6b69dd7b81, type: 3}
@@ -279,6 +279,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 65000013885214866, guid: 395dcd74773407e4faa9906eedf6f75d, type: 3}
+      propertyPath: m_Size.y
+      value: 1.373853
+      objectReference: {fileID: 0}
+    - target: {fileID: 65000013885214866, guid: 395dcd74773407e4faa9906eedf6f75d, type: 3}
+      propertyPath: m_Center.x
+      value: 9.637033e-17
+      objectReference: {fileID: 0}
+    - target: {fileID: 65000013885214866, guid: 395dcd74773407e4faa9906eedf6f75d, type: 3}
+      propertyPath: m_Center.y
+      value: 0.28073496
+      objectReference: {fileID: 0}
+    - target: {fileID: 65000013885214866, guid: 395dcd74773407e4faa9906eedf6f75d, type: 3}
+      propertyPath: m_Center.z
+      value: -0.00000003973643
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -352,6 +368,22 @@ PrefabInstance:
     - target: {fileID: 4000010570413510, guid: 395dcd74773407e4faa9906eedf6f75d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 65000013885214866, guid: 395dcd74773407e4faa9906eedf6f75d, type: 3}
+      propertyPath: m_Size.y
+      value: 1.6467214
+      objectReference: {fileID: 0}
+    - target: {fileID: 65000013885214866, guid: 395dcd74773407e4faa9906eedf6f75d, type: 3}
+      propertyPath: m_Center.x
+      value: -2.6768803e-16
+      objectReference: {fileID: 0}
+    - target: {fileID: 65000013885214866, guid: 395dcd74773407e4faa9906eedf6f75d, type: 3}
+      propertyPath: m_Center.y
+      value: 0.41717038
+      objectReference: {fileID: 0}
+    - target: {fileID: 65000013885214866, guid: 395dcd74773407e4faa9906eedf6f75d, type: 3}
+      propertyPath: m_Center.z
+      value: -0.000000039736427
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -427,6 +459,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 65000013885214866, guid: 395dcd74773407e4faa9906eedf6f75d, type: 3}
+      propertyPath: m_Size.y
+      value: 1.8149446
+      objectReference: {fileID: 0}
+    - target: {fileID: 65000013885214866, guid: 395dcd74773407e4faa9906eedf6f75d, type: 3}
+      propertyPath: m_Center.x
+      value: 1.0257309e-15
+      objectReference: {fileID: 0}
+    - target: {fileID: 65000013885214866, guid: 395dcd74773407e4faa9906eedf6f75d, type: 3}
+      propertyPath: m_Center.y
+      value: 0.50128
+      objectReference: {fileID: 0}
+    - target: {fileID: 65000013885214866, guid: 395dcd74773407e4faa9906eedf6f75d, type: 3}
+      propertyPath: m_Center.z
+      value: -0.00000003973644
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -500,6 +548,22 @@ PrefabInstance:
     - target: {fileID: 4000012348412654, guid: a50af88759b02d74b8328377b33ab3e8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 65000012831585980, guid: a50af88759b02d74b8328377b33ab3e8, type: 3}
+      propertyPath: m_Size.y
+      value: 1.68155
+      objectReference: {fileID: 0}
+    - target: {fileID: 65000012831585980, guid: a50af88759b02d74b8328377b33ab3e8, type: 3}
+      propertyPath: m_Center.x
+      value: 1.1276796e-16
+      objectReference: {fileID: 0}
+    - target: {fileID: 65000012831585980, guid: a50af88759b02d74b8328377b33ab3e8, type: 3}
+      propertyPath: m_Center.y
+      value: 0.5050838
+      objectReference: {fileID: 0}
+    - target: {fileID: 65000012831585980, guid: a50af88759b02d74b8328377b33ab3e8, type: 3}
+      propertyPath: m_Center.z
+      value: 0.000000079472834
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

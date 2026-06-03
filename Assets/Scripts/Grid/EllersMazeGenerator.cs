@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.AI.Navigation;
 using Unity.Netcode;
 using UnityEngine;
+using Unity.AI.Navigation;
 
 static class Extensions
 {
@@ -35,9 +37,6 @@ public struct DeadEndCandidate
 public class EllersMazeGenerator : NetworkBehaviour
 {
     [SerializeField] GridSpawner gridSpawner;
-
-    private Transform wallsContainer;
-    private Transform propsContainer;
 
     [Range(0, 100)] [SerializeField] int WallSpawnPercentage = 0;
     [Range(0, 100)] [SerializeField] int B_WallSpawnPercentage = 0;
@@ -93,9 +92,6 @@ public class EllersMazeGenerator : NetworkBehaviour
                 logicalMap[i, j] = gameObject.AddComponent<CellData>();
             }
         }
-
-        wallsContainer = new GameObject("--- WALLS ---").transform;
-        propsContainer = new GameObject("--- PROPS ---").transform;
     }
 
     public override void OnNetworkSpawn()
@@ -131,12 +127,10 @@ public class EllersMazeGenerator : NetworkBehaviour
 
         if (gridXZ == null)
         {
-            Debug.LogError("🚨 ERROR: El GridSpawner no ha creado el mapa a tiempo. Asegúrate de que el script GridSpawner genera su cuadrícula en su función Awake() y no en el Start().");
+            Debug.LogError("🚨 ERROR: El GridSpawner no ha creado el mapa a tiempo.");
             return;
         }
 
-        // --- ¡EL TRUCO MÁGICO! ---
-        // Forzamos al motor de Unity a usar este número exacto como punto de partida.
         UnityEngine.Random.InitState(semilla);
         rng = new System.Random(semilla);
 
@@ -145,6 +139,27 @@ public class EllersMazeGenerator : NetworkBehaviour
         if (IsServer)
         {
             IniciarGeneracionLaberinto();
+
+            // --- NUEVO: Llamamos a la corrutina en lugar de hornear directamente ---
+            StartCoroutine(HornearNavMeshConRetraso());
+        }
+    }
+
+    // --- LA CORRUTINA SALVAVIDAS ---
+    private System.Collections.IEnumerator HornearNavMeshConRetraso()
+    {
+        // Le decimos a Unity: "Pausa este script, renderiza la pantalla, procesa Netcode 
+        // y vuelve aquí justo antes de pasar al siguiente fotograma".
+        yield return new WaitForSeconds(2f);
+
+        // (Opcional) Si un frame no fuera suficiente, puedes usar: yield return null; 
+        // para esperar al siguiente frame completo.
+
+        if (TryGetComponent(out Unity.AI.Navigation.NavMeshSurface navSurface))
+        {
+            Physics.SyncTransforms(); // Mantenemos esto por seguridad
+            navSurface.BuildNavMesh();
+            Debug.Log("[NAVMESH] Malla de navegación generada con éxito tras 1 frame de espera.");
         }
     }
 
@@ -419,7 +434,6 @@ public class EllersMazeGenerator : NetworkBehaviour
         if(x <= gridSpawner.width && z <= gridSpawner.height)
         {
             var w =GameObject.Instantiate(wall, position, Quaternion.LookRotation(dir));
-            w.transform.parent = wallsContainer;
         }
 
         if(dir == Vector3.forward)
@@ -750,7 +764,6 @@ public class EllersMazeGenerator : NetworkBehaviour
                     Vector3 pos = centerPos + new Vector3(offset, 0, offset);
                     GameObject farola = Instantiate(streetLampPrefab, pos, Quaternion.Euler(0, 165, 0));
                     farola.GetComponent<Unity.Netcode.NetworkObject>().Spawn(true);
-                    farola.transform.parent = propsContainer; // Lo emparentamos después del Spawn por seguridad
                     continue;
                 }
 
@@ -760,7 +773,6 @@ public class EllersMazeGenerator : NetworkBehaviour
                     Vector3 pos = centerPos + new Vector3(-offset, 0, -offset);
                     GameObject farola = Instantiate(streetLampPrefab, pos, Quaternion.Euler(0, 345, 0));
                     farola.GetComponent<Unity.Netcode.NetworkObject>().Spawn(true);
-                    farola.transform.parent = propsContainer;
                     continue;
                 }
 
@@ -777,7 +789,6 @@ public class EllersMazeGenerator : NetworkBehaviour
 
                     GameObject prop = Instantiate(propToSpawn, pos, Quaternion.identity);
                     prop.GetComponent<Unity.Netcode.NetworkObject>().Spawn(true);
-                    prop.transform.parent = propsContainer;
                 }
             }
         }

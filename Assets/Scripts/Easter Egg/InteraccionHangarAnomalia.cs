@@ -8,6 +8,10 @@ public class InteraccionHangarAnomalia : NetworkBehaviour
     public GameObject prefabOrbeAnomalia;
     public Transform puntoAparicionOrbe;
 
+    [Header("Audio del Personaje (Voz)")]
+    [Tooltip("La frase que dirá el jugador al iniciar la extracción")]
+    public AudioClip fraseInicioAnomalia;
+
     private bool jugadorCerca = false;
     private UIManager uiLocalJugador;
 
@@ -74,8 +78,7 @@ public class InteraccionHangarAnomalia : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void ExtraerAnomaliaServerRpc(ulong idJugador)
     {
-        // Doble seguridad en el servidor (Race Condition Shield):
-        // Por si dos jugadores en hangares distintos pulsan la 'E' en el mismo milisegundo exacto
+        // Doble seguridad en el servidor
         if (FindObjectOfType<AnomaliaLaberinto>() != null) return;
 
         // Instanciamos el orbe en el servidor
@@ -84,5 +87,21 @@ public class InteraccionHangarAnomalia : NetworkBehaviour
 
         // Le decimos al orbe quién lo está escoltando
         nuevoOrbe.GetComponent<AnomaliaLaberinto>().ArrancarEscolta(idJugador);
+
+        // --- Lanzamos la voz VIP del jugador que ha empezado el evento ---
+        EventosDeAudioInicioClientRpc(idJugador);
+    }
+
+    [ClientRpc]
+    private void EventosDeAudioInicioClientRpc(ulong idJugador)
+    {
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(idJugador, out NetworkObject objetoJugador))
+        {
+            SistemaVoces voces = objetoJugador.GetComponent<SistemaVoces>();
+            if (voces != null)
+            {
+                voces.ReproducirFraseEspecificaVip(fraseInicioAnomalia);
+            }
+        }
     }
 }

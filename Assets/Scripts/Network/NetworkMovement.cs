@@ -196,8 +196,11 @@ public class NetworkMovement : NetworkBehaviour
         // Miramos si la estamina nos da permiso
         bool tieneEstamina = (sistemaEstamina == null || sistemaEstamina.puedeCorrer);
 
-        // Calculamos la verdad absoluta
-        esprintandoRealmente = quiereCorrer && inputZ > 0 && !inputApuntando && !estaAgachado && !estaTumbado && tieneEstamina;
+        // --- NUEVO: Miramos si el jugador está intentando disparar ---
+        bool intentandoDisparar = Input.GetMouseButton(0);
+
+        // Calculamos la verdad absoluta (Añadimos && !intentandoDisparar al final)
+        esprintandoRealmente = quiereCorrer && inputZ > 0 && !inputApuntando && !estaAgachado && !estaTumbado && tieneEstamina && !intentandoDisparar;
 
         if (sistemaEstamina != null)
         {

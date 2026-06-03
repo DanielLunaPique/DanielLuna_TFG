@@ -163,7 +163,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3449564163
+  GlobalObjectIdHash: 345259913
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -192,6 +192,7 @@ MonoBehaviour:
   idMisionAsociada: BuscarPiezas
   prefabOrbeAnomalia: {fileID: 5580006502365031312, guid: 478cab6d9da28a5429b9cfd7fe51cc0a, type: 3}
   puntoAparicionOrbe: {fileID: 5452862823820497110}
+  fraseInicioAnomalia: {fileID: 8300000, guid: e5e361822dca5e140879971a04fe1cf3, type: 3}
 --- !u!65 &5981672709566263089
 BoxCollider:
   m_ObjectHideFlags: 0

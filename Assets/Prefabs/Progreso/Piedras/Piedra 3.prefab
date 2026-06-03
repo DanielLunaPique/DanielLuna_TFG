@@ -71,8 +71,8 @@ GameObject:
   - component: {fileID: 4833309204521432825}
   - component: {fileID: 1793380789238365305}
   - component: {fileID: 2318718153752498402}
-  - component: {fileID: 1559572390449923320}
   - component: {fileID: -6416786442765160823}
+  - component: {fileID: 1559572390449923320}
   - component: {fileID: -9189221102661561934}
   m_Layer: 0
   m_Name: Piedra 3
@@ -154,23 +154,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &1559572390449923320
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6290350201260047514}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3a8dcfa1ea5a9d945b3970e486973200, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PiedraRuna
-  ShowTopMostFoldoutHeaderGroup: 1
-  estadoBrillo:
-    m_InternalValue: 0
-  piedraVisible:
-    m_InternalValue: 0
 --- !u!114 &-6416786442765160823
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -196,6 +179,23 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!114 &1559572390449923320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6290350201260047514}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a8dcfa1ea5a9d945b3970e486973200, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PiedraRuna
+  ShowTopMostFoldoutHeaderGroup: 1
+  estadoBrillo:
+    m_InternalValue: 0
+  piedraVisible:
+    m_InternalValue: 0
 --- !u!65 &-9189221102661561934
 BoxCollider:
   m_ObjectHideFlags: 0

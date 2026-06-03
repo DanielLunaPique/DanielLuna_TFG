@@ -10,6 +10,15 @@ public class GestorPuzzleRunas : NetworkBehaviour
     public GameObject prefabPiezaBaston;
     public Transform puntoAparicionPieza;
 
+    [Header("Audio del Puzzle")]
+    public AudioSource audioFuentePuzzle;
+    [Tooltip("Sonido cuando la piedra NO está en la combinación")]
+    public AudioClip sonidoErrorAbsoluto;
+    [Tooltip("Sonido cuando la piedra SÍ está, pero NO toca ahora")]
+    public AudioClip sonidoOrdenIncorrecto;
+    [Tooltip("Sonido cuando aciertas la piedra y el orden")]
+    public AudioClip sonidoAcierto;
+
     private List<PiedraRuna> combinacionCorrecta = new List<PiedraRuna>();
     private int pasoActual = 0;
 
@@ -24,14 +33,12 @@ public class GestorPuzzleRunas : NetworkBehaviour
         }
     }
 
-    // Llama a esta función desde el script de tu Easter Egg cuando toque este paso
     public void ActivarPuzzle()
     {
         if (!IsServer || puzzleActivo.Value) return;
 
         puzzleActivo.Value = true;
 
-        // Hacemos visibles todas las piedras en la red
         foreach (var piedra in listaPiedras)
         {
             if (piedra != null) piedra.piedraVisible.Value = true;
@@ -42,24 +49,23 @@ public class GestorPuzzleRunas : NetworkBehaviour
 
     private void GenerarCombinacion()
     {
-        // Elegimos 3 piedras al azar de la lista como la solución correcta
         var rng = new System.Random();
         var piedrasBarajadas = listaPiedras.OrderBy(a => rng.Next()).ToList();
 
         combinacionCorrecta = piedrasBarajadas.Take(3).ToList();
 
-        // Chivato en consola (usa el nombre del GameObject de la piedra para que sepas cuáles son)
-        Debug.Log($"<color=cyan>[PUZZLE RUNAS] La combinación correcta es: 1º[{combinacionCorrecta[0].gameObject.name}], 2º[{combinacionCorrecta[1].gameObject.name}], 3º[{combinacionCorrecta[2].gameObject.name}]</color>");
+        Debug.Log($"<color=cyan>[PUZZLE RUNAS] Combinación: 1º[{combinacionCorrecta[0].name}], 2º[{combinacionCorrecta[1].name}], 3º[{combinacionCorrecta[2].name}]</color>");
     }
 
     public void ComprobarDisparoServer(PiedraRuna piedraDisparada)
     {
         if (!IsServer || !puzzleActivo.Value || puzzleCompletado.Value) return;
 
-        // Comprobamos si la piedra disparada es la que toca en el paso actual
+        // CASO 1: Acierto total (Piedra correcta en el orden correcto)
         if (piedraDisparada == combinacionCorrecta[pasoActual])
         {
-            piedraDisparada.estadoBrillo.Value = 1; // Brillo Dorado (Acierto)
+            piedraDisparada.estadoBrillo.Value = 1; // Brillo Dorado
+            ReproducirSonidoClientRpc(3); // Lanzamos el sonido de éxito a todos
             pasoActual++;
 
             if (pasoActual >= 3)
@@ -67,23 +73,40 @@ public class GestorPuzzleRunas : NetworkBehaviour
                 CompletarPuzzle();
             }
         }
+        // CASO 2: Orden incorrecto (La piedra está en la combinación, pero no es la de ahora)
+        else if (combinacionCorrecta.Contains(piedraDisparada))
+        {
+            ReproducirSonidoClientRpc(2); // Lanzamos el sonido de "Casi, pero no"
+            FallarSecuencia();
+        }
+        // CASO 3: Error absoluto (La piedra ni siquiera pertenece a los 3 elegidos)
         else
         {
-            // Error: Reiniciamos la secuencia
-            pasoActual = 0;
-            foreach (var p in listaPiedras)
-            {
-                if (p != null) p.estadoBrillo.Value = 2; // Brillo Rojo (Error)
-            }
-            Invoke(nameof(ResetearVisual), 1f);
+            ReproducirSonidoClientRpc(1); // Lanzamos el sonido de error grave
+            FallarSecuencia();
         }
+    }
+
+    private void FallarSecuencia()
+    {
+        // 1. Reiniciamos el progreso matemático del jugador a cero
+        pasoActual = 0;
+
+        // 2. Castigo visual: Todas las piedras se ponen rojas para avisar del reinicio
+        foreach (var p in listaPiedras)
+        {
+            if (p != null) p.estadoBrillo.Value = 2; // Brillo Rojo
+        }
+
+        // 3. Volvemos a apagarlas después de 1 segundo para que vuelvan a intentarlo
+        Invoke(nameof(ResetearVisual), 1.2f);
     }
 
     private void ResetearVisual()
     {
         foreach (var p in listaPiedras)
         {
-            if (p != null) p.estadoBrillo.Value = 0; // Vuelven a la normalidad
+            if (p != null) p.estadoBrillo.Value = 0; // Vuelven a su estado apagado
         }
     }
 
@@ -91,17 +114,35 @@ public class GestorPuzzleRunas : NetworkBehaviour
     {
         puzzleCompletado.Value = true;
 
-        // 1. Damos la recompensa
         if (prefabPiezaBaston != null && puntoAparicionPieza != null)
         {
             GameObject pieza = Instantiate(prefabPiezaBaston, puntoAparicionPieza.position, Quaternion.identity);
             pieza.GetComponent<NetworkObject>().Spawn(true);
         }
 
-        // 2. Activamos el efecto de desaparición en todas las piedras
         foreach (var p in listaPiedras)
         {
             if (p != null) p.DesaparecerPiedraClientRpc();
+        }
+    }
+
+    // --- MAGIA DE RED: El servidor ordena a los clientes que reproduzcan el sonido ---
+    [ClientRpc]
+    private void ReproducirSonidoClientRpc(int tipoSonido)
+    {
+        if (audioFuentePuzzle == null) return;
+
+        switch (tipoSonido)
+        {
+            case 1:
+                if (sonidoErrorAbsoluto != null) audioFuentePuzzle.PlayOneShot(sonidoErrorAbsoluto);
+                break;
+            case 2:
+                if (sonidoOrdenIncorrecto != null) audioFuentePuzzle.PlayOneShot(sonidoOrdenIncorrecto);
+                break;
+            case 3:
+                if (sonidoAcierto != null) audioFuentePuzzle.PlayOneShot(sonidoAcierto);
+                break;
         }
     }
 }

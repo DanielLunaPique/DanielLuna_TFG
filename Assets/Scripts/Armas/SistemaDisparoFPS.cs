@@ -105,6 +105,8 @@ public class SistemaDisparoFPS : MonoBehaviour
     {
         if (arma.balasActuales <= 0)
         {
+            SistemaVoces misVoces = GetComponent<SistemaVoces>();
+            misVoces.ReproducirFrase(SistemaVoces.TipoVoz.MunicionBaja);
             return;
         }
 

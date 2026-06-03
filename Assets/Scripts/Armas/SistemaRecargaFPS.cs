@@ -21,21 +21,32 @@ public class SistemaRecargaFPS : MonoBehaviour
 
         DatosArma arma = controladorFPS.armaActual;
 
-        if (controladorFPS.estaRecargando && Input.GetKey(KeyCode.LeftShift) && Input.GetAxis("Vertical") > 0)
+        // 1. Detectamos si el jugador está intentando esprintar
+        bool quiereCorrer = Input.GetKey(KeyCode.LeftShift) && Input.GetAxis("Vertical") > 0;
+
+        // 2. Si YA estaba recargando y de repente se pone a correr -> CANCELAR RECARGA
+        if (controladorFPS.estaRecargando && quiereCorrer)
         {
             CancelarRecarga(arma);
             return;
         }
 
+        // --- EL SEGURO ANTI-BUGS ---
+        // Si el jugador está corriendo, abortamos la función aquí mismo.
+        // Esto impide que el arma intente recargar (manual o automáticamente) 
+        // dándole prioridad absoluta al sprint.
+        if (quiereCorrer) return;
+
+        // 3. Recarga Manual (Solo llega aquí si NO está corriendo)
         if (Input.GetKeyDown(KeyCode.R) && !controladorFPS.estaRecargando)
         {
             if (arma.balasActuales < arma.estadisticas.balasCargador && arma.balasReserva > 0)
             {
-                GetComponentInParent<SistemaVoces>().ReproducirFrase(SistemaVoces.TipoVoz.Recarga);
                 corrutinaRecargaActiva = StartCoroutine(RutinaRecarga(arma));
             }
         }
 
+        // 4. Recarga Automática (Solo llega aquí si NO está corriendo)
         if (arma.balasActuales <= 0 && !controladorFPS.estaRecargando && arma.balasReserva > 0)
         {
             corrutinaRecargaActiva = StartCoroutine(RutinaRecarga(arma));
@@ -52,6 +63,12 @@ public class SistemaRecargaFPS : MonoBehaviour
 
         controladorFPS.estaRecargando = false;
 
+        // --- NUEVO: CORTAR EL AUDIO SI SE CANCELA LA RECARGA ---
+        if (audioFuente != null && audioFuente.isPlaying)
+        {
+            audioFuente.Stop();
+        }
+
         // Si cancelamos, restauramos el contenedor a su posición original en el centro (0,0,0)
         if (arma.transform.parent != null)
         {
@@ -65,7 +82,14 @@ public class SistemaRecargaFPS : MonoBehaviour
 
         if (audioFuente != null && arma.estadisticas.sonidoRecarga != null)
         {
-            audioFuente.PlayOneShot(arma.estadisticas.sonidoRecarga);
+            // --- NUEVO: SINCRONIZAR AUDIO Y TIEMPO ---
+            audioFuente.clip = arma.estadisticas.sonidoRecarga;
+
+            // Calculamos a qué velocidad tiene que ir el audio para que encaje perfecto
+            float duracionOriginal = arma.estadisticas.sonidoRecarga.length;
+            audioFuente.pitch = duracionOriginal / arma.estadisticas.tiempoRecarga;
+
+            audioFuente.Play();
         }
 
         Transform contenedor = arma.transform.parent;
@@ -90,11 +114,8 @@ public class SistemaRecargaFPS : MonoBehaviour
             while (tEspera < tiempoEspera)
             {
                 tEspera += Time.deltaTime;
-
-                // Forzamos la posición en cada frame para ganarle la pelea al script de balanceo
                 contenedor.localPosition = posAbajo;
-
-                yield return null; // Esperamos al siguiente frame
+                yield return null;
             }
         }
 
@@ -113,10 +134,11 @@ public class SistemaRecargaFPS : MonoBehaviour
             yield return null;
         }
 
-        // Aseguramos que quede perfecta en el centro
         contenedor.localPosition = posOriginal;
-
         controladorFPS.estaRecargando = false;
         corrutinaRecargaActiva = null;
+
+        // --- NUEVO: RESTAURAR EL PITCH POR SI ACASO ---
+        if (audioFuente != null) audioFuente.pitch = 1f;
     }
 }

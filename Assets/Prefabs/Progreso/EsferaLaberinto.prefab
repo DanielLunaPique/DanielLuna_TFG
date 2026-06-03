@@ -78,6 +78,8 @@ MonoBehaviour:
   velocidadMovimiento: 3
   distanciaMaximaEscolta: 10
   prefabPuntaLanza: {fileID: 6197941947862941531, guid: b997b19ccc70cbb4fb70ca0e191cbb5e, type: 3}
+  sonidoFisicoFallo: {fileID: 0}
+  fraseFalloAnomalia: {fileID: 8300000, guid: 48ef654e1ec55d64185796e41fd9ce6f, type: 3}
   enMovimiento: 0
 --- !u!114 &-5516491638377740712
 MonoBehaviour:

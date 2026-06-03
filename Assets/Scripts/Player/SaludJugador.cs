@@ -84,12 +84,24 @@ public class SaludJugador : NetworkBehaviour
 
     private void AlCambiarSalud(int vidaAnterior, int vidaNueva)
     {
+        // ========================================================
+        // 1. --- LÓGICA UNIVERSAL (Lo ejecutan TODOS los jugadores) ---
+        // ========================================================
+
+        // Si la vida baja a 0, TODOS deben ejecutar la muerte visual de este cuerpo
+        if (vidaNueva <= 0 && vidaAnterior > 0)
+        {
+            EjecutarMuerteVisualParaTodos();
+        }
+
+        // ========================================================
+        // 2. --- LÓGICA LOCAL (A partir de aquí, SOLO pasa el dueño) ---
+        // ========================================================
         if (!IsOwner) return;
 
-        // 1. --- LÓGICA DE RECIBIR DAÑO ---
+        // Efectos de Audio y Voces
         if (vidaNueva < vidaAnterior && !estaMuerto)
         {
-            // A) Efectos de Audio
             if (audioEfectos != null && sonidoImpacto != null)
             {
                 audioEfectos.PlayOneShot(sonidoImpacto, 1f);
@@ -100,7 +112,6 @@ public class SaludJugador : NetworkBehaviour
                 sistemaVocesLocal.ReproducirFrase(SistemaVoces.TipoVoz.Herido);
             }
 
-            // B) Efectos Visuales (EXACTAMENTE COMO LO TENÍAS TÚ)
             if (uiManagerLocal != null && uiManagerLocal.menuTiendaAbierto)
             {
                 uiManagerLocal.CerrarMenuTiendaMedica();
@@ -114,18 +125,11 @@ public class SaludJugador : NetworkBehaviour
                 destelloRojo.color = c;
             }
 
-            // La lógica original de la sangre
-            if (vidaNueva <= 20)
-            {
-                MostrarGotas(gotasDeSangre.Length);
-            }
-            else
-            {
-                MostrarGotas(gotasDeSangre.Length / 2);
-            }
+            if (vidaNueva <= 20) MostrarGotas(gotasDeSangre.Length);
+            else MostrarGotas(gotasDeSangre.Length / 2);
         }
 
-        // 2. --- LÓGICA DEL CORAZÓN (Se evalúa para encender y apagar) ---
+        // Lógica del latido del corazón
         if (vidaNueva > 0 && vidaNueva <= 20 && !estaMuerto)
         {
             if (audioCorazon != null && !audioCorazon.isPlaying && clipCorazon != null)
@@ -142,22 +146,20 @@ public class SaludJugador : NetworkBehaviour
                 coroutineCorazon = StartCoroutine(FadeCorazon(false));
             }
         }
-
-        // 3. --- LÓGICA UNIVERSAL DE MUERTE ---
-        if (vidaNueva <= 0 && vidaAnterior > 0)
-        {
-            EjecutarMuerteLocal();
-        }
     }
 
-    private void EjecutarMuerteLocal()
+    private void EjecutarMuerteVisualParaTodos()
     {
+        // 1. Esto lo ejecutan TODOS: El jugador se marca como muerto y sus mallas desaparecen
         estaMuerto = true;
-        if (audioCorazon != null) audioCorazon.Stop();
-
         ConvertirseEnFantasma();
 
-        if (IsOwner) CambiarEspectador(0);
+        // 2. Esto SOLO lo ejecuta el dueño que acaba de morir
+        if (IsOwner)
+        {
+            if (audioCorazon != null) audioCorazon.Stop();
+            CambiarEspectador(0);
+        }
     }
 
     private void ConvertirseEnFantasma()
@@ -314,7 +316,6 @@ public class SaludJugador : NetworkBehaviour
         if (vivos.Count == 0)
         {
             if (uiManagerLocal != null) uiManagerLocal.OcultarHUDModuloEspectador();
-            transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             return;
         }
 

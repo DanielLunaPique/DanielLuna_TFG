@@ -12,6 +12,12 @@ public class AnomaliaLaberinto : NetworkBehaviour
     [Header("Recompensa")]
     public GameObject prefabPuntaLanza;
 
+    [Header("Audio del Fallo")]
+    [Tooltip("El sonido que hace el orbe al desaparecer (Opcional)")]
+    public AudioClip sonidoFisicoFallo;
+    [Tooltip("La frase que dirá el jugador si se aleja demasiado")]
+    public AudioClip fraseFalloAnomalia;
+
     private EllersMazeGenerator mazeGen;
     private List<Vector3> rutaActual;
     private int indiceRuta = 0;
@@ -88,7 +94,31 @@ public class AnomaliaLaberinto : NetworkBehaviour
     private void IniciarDesvanecimiento()
     {
         if (!IsServer) return;
+
+        // --- Avisamos a todos del fallo para reproducir los audios ---
+        EventosDeAudioFalloClientRpc(idJugadorEscoltando, transform.position);
+
         StartCoroutine(RutinaFalloEscolta());
+    }
+
+    [ClientRpc]
+    private void EventosDeAudioFalloClientRpc(ulong idJugador, Vector3 posicionOrbe)
+    {
+        // 1. Sonido físico del orbe desapareciendo
+        if (sonidoFisicoFallo != null)
+        {
+            AudioSource.PlayClipAtPoint(sonidoFisicoFallo, posicionOrbe);
+        }
+
+        // 2. Frase de enfado/fallo del jugador
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(idJugador, out NetworkObject objetoJugador))
+        {
+            SistemaVoces voces = objetoJugador.GetComponent<SistemaVoces>();
+            if (voces != null)
+            {
+                voces.ReproducirFraseEspecificaVip(fraseFalloAnomalia);
+            }
+        }
     }
 
     private IEnumerator RutinaFalloEscolta()

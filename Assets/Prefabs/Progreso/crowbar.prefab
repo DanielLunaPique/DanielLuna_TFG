@@ -131,6 +131,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PataDeCabra
   ShowTopMostFoldoutHeaderGroup: 1
+  sonidoRecoger: {fileID: 8300000, guid: 0dae9c5b81835ed4790135ce09f48d8d, type: 3}
+  frasePersonajeAlRecoger: {fileID: 8300000, guid: 58e14bb8d8735624c993a39377496224, type: 3}
 --- !u!65 &-6641161223689283556
 BoxCollider:
   m_ObjectHideFlags: 0

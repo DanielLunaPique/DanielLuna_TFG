@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.SceneManagement; // <-- IMPORTANTE: Necesario para cambiar al menú
+using UnityEngine.SceneManagement;
 
 public class GameManager : NetworkBehaviour
 {
@@ -15,7 +15,7 @@ public class GameManager : NetworkBehaviour
         RondaEspecial,
         RondaAsedio,
         RondaAguantar,
-        Derrota // <-- NUEVO ESTADO AÑADIDO
+        Derrota
     }
 
     [Header("Control de partida")]
@@ -30,8 +30,9 @@ public class GameManager : NetworkBehaviour
     public float tiempoPreparacion = 10f;
     public int spawnsSimultaneos = 5;
     public float tiempoEntreOleadas = 4f;
-    [Tooltip("El tiempo que tarda entre que sale un zombie y el siguiente de la misma oleada")]
     public float tiempoEntreSpawnsAlternados = 0.5f;
+    [Tooltip("El máximo de zombis que puede haber en pantalla al mismo tiempo")]
+    public int maxZombiesEnMapa = 24; // <-- NUEVO LÍMITE GLOBAL
 
     [Header("Prefab Zombie")]
     public GameObject prefabZombie;
@@ -74,6 +75,7 @@ public class GameManager : NetworkBehaviour
     private IEnumerator IniciarPrimeraRonda()
     {
         estadoActual.Value = EstadoJuego.Preparacion;
+        ReproducirSonidoRondaClientRpc();
         yield return new WaitForSeconds(2f);
 
         rondaActual.Value++;
@@ -85,8 +87,7 @@ public class GameManager : NetworkBehaviour
     private IEnumerator IniciarSiguienteRonda()
     {
         estadoActual.Value = EstadoJuego.Preparacion;
-        if (audioSourceUI != null && sonidoCambioRonda != null)
-            audioSourceUI.PlayOneShot(sonidoCambioRonda);
+        ReproducirSonidoRondaClientRpc();
 
         yield return new WaitForSeconds(tiempoPreparacion);
 
@@ -96,14 +97,33 @@ public class GameManager : NetworkBehaviour
         StartCoroutine(RutinaGenerarZombies());
     }
 
+    [ClientRpc]
+    private void ReproducirSonidoRondaClientRpc()
+    {
+        if (audioSourceUI != null && sonidoCambioRonda != null)
+        {
+            audioSourceUI.PlayOneShot(sonidoCambioRonda);
+        }
+    }
+
     private IEnumerator RutinaGenerarZombies()
     {
         while ((estadoActual.Value == EstadoJuego.RondaNormal || estadoActual.Value == EstadoJuego.RondaEspecial)
                && zombiesPorGenerar.Value > 0)
         {
+            // --- 1. EL FRENO DE MANO ---
+            // Si el mapa ya tiene el máximo permitido, esperamos sin consumir recursos
+            if (zombiesVivos.Value >= maxZombiesEnMapa)
+            {
+                yield return new WaitForSeconds(1f);
+                continue; // Vuelve a evaluar el while sin ejecutar lo de abajo
+            }
+
             var clientes = NetworkManager.Singleton.ConnectedClientsList;
             if (clientes.Count == 0) { yield return new WaitForSeconds(1f); continue; }
 
+            // --- 2. OPTIMIZACIÓN ---
+            // Solo buscamos las zonas si sabemos que tenemos permiso para spawnear
             ZonaZombies[] todasLasZonas = FindObjectsOfType<ZonaZombies>();
             List<PuntoSpawnZombie> spawnsValidos = new List<PuntoSpawnZombie>();
 
@@ -128,8 +148,13 @@ public class GameManager : NetworkBehaviour
                 return distanciaMinima;
             }).ToList();
 
+            // --- 3. CÁLCULO INTELIGENTE DE HUECOS ---
+            int huecosLibres = maxZombiesEnMapa - zombiesVivos.Value;
             int puntosAElegir = Mathf.Min(spawnsSimultaneos, spawnsOrdenados.Count);
+
+            // Elegimos el menor entre: los que faltan de la ronda, los puntos de spawn, y los huecos libres reales
             int zombiesEnEstaOleada = Mathf.Min(puntosAElegir, zombiesPorGenerar.Value);
+            zombiesEnEstaOleada = Mathf.Min(zombiesEnEstaOleada, huecosLibres);
 
             for (int i = 0; i < zombiesEnEstaOleada; i++)
             {
@@ -260,25 +285,42 @@ public class GameManager : NetworkBehaviour
     // SISTEMA DE DERROTA Y CÁMARA CINEMATOGRÁFICA
     // ==========================================
 
-    /// <summary>
-    /// Esta función la debe llamar el script de vida del jugador cuando muere.
-    /// Pásale la posición del jugador en el momento de morir.
-    /// </summary>
     public void ComprobarEstadoEquipo(Vector3 posicionMuerte)
     {
         if (!IsServer) return;
 
-        // Si ya hemos perdido, no ejecutamos esto 20 veces
+        // Si ya hemos perdido, ignoramos más llamadas
         if (estadoActual.Value == EstadoJuego.Derrota) return;
 
-        // Comprobamos si el equipo entero ha muerto. 
-        // (Asumo que esta función solo se llama cuando ya no quedan vivos, 
-        // o si prefieres, añade aquí un bucle for que cuente la vida de todos).
+        int jugadoresVivos = 0;
 
-        estadoActual.Value = EstadoJuego.Derrota;
+        // Repasamos la lista de todos los jugadores conectados en la red
+        foreach (var cliente in NetworkManager.Singleton.ConnectedClientsList)
+        {
+            if (cliente.PlayerObject != null)
+            {
+                // Usamos el script de Salud para ver si siguen en pie
+                SaludJugador salud = cliente.PlayerObject.GetComponent<SaludJugador>();
 
-        // Le mandamos a TODOS los jugadores la señal para ejecutar la animación
-        MostrarAnimacionDerrotaClientRpc(posicionMuerte);
+                if (salud != null && !salud.estaMuerto)
+                {
+                    jugadoresVivos++;
+                }
+            }
+        }
+
+        // ¿No queda nadie vivo? Entonces sí, fin de la partida.
+        if (jugadoresVivos == 0)
+        {
+            estadoActual.Value = EstadoJuego.Derrota;
+            MostrarAnimacionDerrotaClientRpc(posicionMuerte);
+        }
+        else
+        {
+            // Si quedan jugadores vivos, la partida sigue.
+            // El GameManager se calla y deja que tu script SaludJugador active el espectador.
+            Debug.Log($"<color=yellow>[GameManager] Un jugador ha muerto. Aún quedan {jugadoresVivos} vivos. La partida continúa.</color>");
+        }
     }
 
     [ClientRpc]
@@ -289,30 +331,24 @@ public class GameManager : NetworkBehaviour
 
     private IEnumerator RutinaAnimacionDerrota(Vector3 posicionInicial)
     {
-        // 1. Apagamos todas las cámaras de los jugadores para que no interfieran
         Camera[] camaras = FindObjectsOfType<Camera>();
         foreach (Camera cam in camaras)
         {
             cam.enabled = false;
-            // Apagamos también los audífonos para que Unity no se queje de "2 AudioListeners"
             if (cam.gameObject.TryGetComponent(out AudioListener al)) al.enabled = false;
         }
 
-        // 2. Creamos una nueva cámara de la nada en el punto de la muerte
         GameObject camaraCinematica = new GameObject("CamaraDerrota_Cinematica");
         camaraCinematica.AddComponent<Camera>();
         camaraCinematica.AddComponent<AudioListener>();
 
-        // Empezamos 1 metro por encima del cuerpo, mirando hacia abajo para el dramatismo
         Vector3 posicionInicio = posicionInicial + Vector3.up * 5f;
         camaraCinematica.transform.position = posicionInicio;
         camaraCinematica.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
-        // 3. Animamos la cámara subiendo lentamente durante 4.5 segundos
         float duracionAnimacion = 7f;
         float tiempoPasado = 0f;
 
-        // Destino: 3 metros por encima de donde empezó
         Vector3 posicionDestino = posicionInicio + Vector3.up * 3f;
 
         while (tiempoPasado < duracionAnimacion)
@@ -322,17 +358,13 @@ public class GameManager : NetworkBehaviour
             yield return null;
         }
 
-        // 4. Se acabó el show. Apagamos los servidores de forma limpia
         if (NetworkManager.Singleton != null)
         {
             NetworkManager.Singleton.Shutdown();
         }
 
-        // 5. Destruimos al propio GameManager para evitar problemas de duplicados al reconectar
         Destroy(gameObject);
 
-        // 6. Volvemos al menú principal.
-        // OJO: Asegúrate de que tu escena de menú se llame EXACTAMENTE así en el Build Settings
         SceneManager.LoadScene("Main Menu");
     }
 }
