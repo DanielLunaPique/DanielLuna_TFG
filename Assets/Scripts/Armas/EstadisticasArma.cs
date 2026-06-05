@@ -13,6 +13,11 @@ public class EstadisticasArma : ScriptableObject
     [Tooltip("El sistema de partículas que sale del cañón al disparar")]
     public GameObject efectoFogonazo;
 
+    [Header("Tercera Persona (Multijugador)")]
+    public GameObject prefabTerceraPersona; // El arma falsa SIN código
+    public Vector3 posicionManoDerecha; // Para encajarla en la palma
+    public Vector3 rotacionManoDerecha; // Para que el cañón mire adelante
+
     [Header("Audio")]
     [Tooltip("El sonido que hace el arma al disparar")]
     public AudioClip sonidoDisparo;

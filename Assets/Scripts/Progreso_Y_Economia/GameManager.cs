@@ -63,20 +63,22 @@ public class GameManager : NetworkBehaviour
 
     private int CalcularZombiesPorRonda(int ronda)
     {
-        int numJugadores = NetworkManager.Singleton.ConnectedClientsList.Count;
-        if (numJugadores <= 0) numJugadores = 1;
+        // Fórmula independiente de los jugadores (Curva aplanada)
+        float baseZombies = 5f;
+        float crecimientoLineal = ronda * 2.5f;
+        float crecimientoExponencial = Mathf.Pow(ronda * 0.5f, 2f);
 
-        float curvaExponencial = Mathf.Pow(ronda, 1.5f);
-        int total = Mathf.FloorToInt(6 + (ronda * 2) + curvaExponencial) * numJugadores;
+        int total = Mathf.FloorToInt(baseZombies + crecimientoLineal + crecimientoExponencial);
 
-        return Mathf.Min(total, 500);
+        return Mathf.Min(total, 500); // Límite de seguridad
     }
 
     private IEnumerator IniciarPrimeraRonda()
     {
         estadoActual.Value = EstadoJuego.Preparacion;
+        yield return new WaitForSeconds(3f);
         ReproducirSonidoRondaClientRpc();
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(5f);
 
         rondaActual.Value++;
         zombiesPorGenerar.Value = CalcularZombiesPorRonda(rondaActual.Value);

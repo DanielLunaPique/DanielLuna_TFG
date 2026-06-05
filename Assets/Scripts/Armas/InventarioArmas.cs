@@ -7,6 +7,10 @@ public class InventarioArmas : MonoBehaviour
     public ControladorArmasFPS controladorFPS;
     public Transform contenedorArmas;
 
+    [Header("Multijugador")]
+    [Tooltip("Arrastra aquí la raíz de tu jugador que tiene el script SincronizacionTerceraPersona")]
+    public SincronizacionTerceraPersona sincronizadorTP;
+
     [Header("Arsenal (Máximo 2)")]
     public DatosArma[] armasEquipadas = new DatosArma[2];
 
@@ -22,10 +26,14 @@ public class InventarioArmas : MonoBehaviour
 
     void Start()
     {
-        ActualizarVisibilidadArmas();
-        ConfigurarArmaEnControlador();
+        // Intento de auto-asignación por si se te olvida ponerlo en el Inspector
+        if (sincronizadorTP == null)
+        {
+            sincronizadorTP = GetComponentInParent<SincronizacionTerceraPersona>();
+        }
 
-        if (armaPorDefecto != null) RecibirNuevaArma(armaPorDefecto);
+        // Al empezar la partida, limpiamos y damos el arma inicial
+        ResetearInventario();
     }
 
     void Update()
@@ -33,6 +41,31 @@ public class InventarioArmas : MonoBehaviour
         if (Input.GetAxis("Mouse ScrollWheel") != 0f && !estaCambiandoArma && !controladorFPS.estaRecargando)
         {
             CambiarArmaSiguiente();
+        }
+    }
+
+    // --- NUEVA FUNCIÓN: LIMPIEZA TOTAL ---
+    public void ResetearInventario()
+    {
+        for (int i = 0; i < armasEquipadas.Length; i++)
+        {
+            if (armasEquipadas[i] != null)
+            {
+                Destroy(armasEquipadas[i].gameObject);
+                armasEquipadas[i] = null;
+            }
+        }
+
+        indiceArmaActiva = 0;
+
+        if (armaPorDefecto != null)
+        {
+            RecibirNuevaArma(armaPorDefecto);
+        }
+        else
+        {
+            ActualizarVisibilidadArmas();
+            ConfigurarArmaEnControlador();
         }
     }
 
@@ -86,11 +119,9 @@ public class InventarioArmas : MonoBehaviour
         estaCambiandoArma = true;
         float tiempoMedio = duracionTotalCambio / 2f;
 
-        // Trabajamos con el CONTENEDOR, no con el arma
         Vector3 posOriginalContenedor = Vector3.zero;
         Vector3 posAbajoContenedor = posOriginalContenedor - new Vector3(0, distanciaBajarCambio, 0);
 
-        // 1. BAJAMOS EL CONTENEDOR CON EL ARMA VIEJA
         float t = 0;
         while (t < tiempoMedio)
         {
@@ -99,12 +130,10 @@ public class InventarioArmas : MonoBehaviour
             yield return null;
         }
 
-        // 2. EL SWAP MÁGICO (Cambiamos las armas mientras están abajo y no se ven)
         indiceArmaActiva = nuevoIndice;
         ActualizarVisibilidadArmas();
         ConfigurarArmaEnControlador();
 
-        // 3. SUBIMOS EL CONTENEDOR CON EL ARMA NUEVA
         t = 0;
         while (t < tiempoMedio)
         {
@@ -135,6 +164,14 @@ public class InventarioArmas : MonoBehaviour
             controladorFPS.armaActual = armasEquipadas[indiceArmaActiva];
             controladorFPS.RecalcularPuntoDeMira();
             controladorFPS.ActualizarAgarresIK();
+
+            // ========================================================
+            // --- FIX: AVISAMOS A LA RED DEL CAMBIO DE ARMA ---
+            // ========================================================
+            if (sincronizadorTP != null)
+            {
+                sincronizadorTP.NotificarCambioArma(armasEquipadas[indiceArmaActiva].estadisticas.nombreArma);
+            }
         }
     }
 

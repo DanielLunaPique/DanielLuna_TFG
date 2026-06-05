@@ -30,9 +30,16 @@ public class CajaMisteriosa : NetworkBehaviour
 
     public Transform puntoFlotanteArma;
 
-    [Header("Arsenal y Mudanza")]
+    [Header("Arsenal")]
     public EstadisticasArma[] armasPosibles;
-    [Range(0f, 1f)] public float probabilidadDeHuir = 0.15f;
+
+    [Header("Sistema de Mudanza")]
+    [Tooltip("Número de compras seguras antes de que la caja pueda huir")]
+    public int minComprasParaHuir = 6;
+    [Tooltip("Probabilidad inicial de huir tras superar las compras seguras (0.15 = 15%)")]
+    [Range(0f, 1f)] public float probabilidadBaseHuir = 0.15f;
+    [Tooltip("Cuánto aumenta la probabilidad por cada compra extra (0.05 = 5%)")]
+    [Range(0f, 1f)] public float incrementoProbabilidad = 0.05f;
 
     // Variables internas
     private NetworkVariable<int> indiceArmaGenerada = new NetworkVariable<int>(-1);
@@ -41,6 +48,9 @@ public class CajaMisteriosa : NetworkBehaviour
     private bool jugadorEnZona = false;
     private SistemaPuntosFPS bolsilloLocal;
     private UIManager uiManagerLocal;
+
+    // Contador interno para el sistema de mudanza
+    private int comprasRealizadas = 0;
 
     public override void OnNetworkSpawn()
     {
@@ -52,16 +62,12 @@ public class CajaMisteriosa : NetworkBehaviour
         esLaCajaActiva.OnValueChanged += ActualizarVisibilidadCaja;
         ActualizarVisibilidadCaja(false, esLaCajaActiva.Value);
 
-        // Nos aseguramos de que el sub-objeto de partículas empiece apagado
         if (particulasInvocacion != null) particulasInvocacion.SetActive(false);
     }
 
     private void ActualizarVisibilidadCaja(bool estadoViejo, bool estadoNuevo)
     {
-        // Si has asignado la caja física y quieres que desaparezca/aparezca entera
         if (modeloCajaVisual != null) modeloCajaVisual.SetActive(estadoNuevo);
-
-        // Encendemos el Magic Circle 2 (luz morada) si la caja es la activa del mapa
         if (indicadorCajaActiva != null) indicadorCajaActiva.SetActive(estadoNuevo);
     }
 
@@ -83,7 +89,6 @@ public class CajaMisteriosa : NetworkBehaviour
         }
         else if (estadoActual.Value == EstadoCaja.Procesando)
         {
-            // Mientras salen los rayos morados, ocultamos el texto
             uiManagerLocal.OcultarTextoInteraccion();
         }
         else if (estadoActual.Value == EstadoCaja.EsperandoRecogida)
@@ -128,44 +133,46 @@ public class CajaMisteriosa : NetworkBehaviour
 
     private IEnumerator RutinaProcesarCaja()
     {
-        // ¿La caja se muda?
-        if (Random.value <= probabilidadDeHuir)
+        // 1. Aumentamos el contador de uso de ESTA caja
+        comprasRealizadas++;
+
+        // 2. Comprobamos si ya superó el mínimo seguro
+        if (comprasRealizadas > minComprasParaHuir)
         {
-            EfectoHuirClientRpc();
-            yield return new WaitForSeconds(2.5f);
-            MudarCajaServer();
-            yield break;
+            // Calculamos la probabilidad: ej. en la 7ª compra (intentosExtra = 1), probabilidad = 0.15
+            int intentosExtra = comprasRealizadas - minComprasParaHuir;
+            float probabilidadActual = probabilidadBaseHuir + ((intentosExtra - 1) * incrementoProbabilidad);
+
+            if (Random.value <= probabilidadActual)
+            {
+                EfectoHuirClientRpc();
+                yield return new WaitForSeconds(2.5f);
+                MudarCajaServer();
+                yield break;
+            }
         }
 
-        // --- NUEVA LÓGICA ANTI-DUPLICADOS ---
-        // 1. Buscamos el inventario del comprador actual
+        // --- LÓGICA ANTI-DUPLICADOS ---
         var jugador = NetworkManager.Singleton.ConnectedClients[idCompradorActual.Value].PlayerObject;
         InventarioArmas inventarioJugador = jugador.GetComponentInChildren<InventarioArmas>();
 
         List<int> indicesDisponibles = new List<int>();
 
-        // 2. Filtramos la lista de armas posibles
         for (int i = 0; i < armasPosibles.Length; i++)
         {
-            // Si el inventario existe y el jugador YA TIENE esta arma, nos la saltamos
             if (inventarioJugador != null && inventarioJugador.TieneArma(armasPosibles[i]))
             {
                 continue;
             }
-
-            // Si no la tiene, es una candidata válida
             indicesDisponibles.Add(i);
         }
 
-        // 3. Elegimos el arma al azar SOLO de las que no tiene
         if (indicesDisponibles.Count > 0)
         {
             indiceArmaGenerada.Value = indicesDisponibles[Random.Range(0, indicesDisponibles.Count)];
         }
         else
         {
-            // Sistema de seguridad: si por algún motivo ya tiene TODAS las armas del juego, 
-            // le damos una al azar de la lista completa para no romper el código.
             indiceArmaGenerada.Value = Random.Range(0, armasPosibles.Length);
         }
         // ------------------------------------
@@ -176,7 +183,6 @@ public class CajaMisteriosa : NetworkBehaviour
 
         estadoActual.Value = EstadoCaja.EsperandoRecogida;
 
-        // Esperamos el tiempo de recogida
         yield return new WaitForSeconds(tiempoParaRecoger - 2.5f);
 
         if (estadoActual.Value == EstadoCaja.EsperandoRecogida)
@@ -195,6 +201,9 @@ public class CajaMisteriosa : NetworkBehaviour
 
     private void MudarCajaServer()
     {
+        // Reseteamos el contador para la próxima vez que la caja caiga en esta zona
+        comprasRealizadas = 0;
+
         esLaCajaActiva.Value = false;
         estadoActual.Value = EstadoCaja.Inactiva;
         idCompradorActual.Value = 9999;
@@ -243,10 +252,8 @@ public class CajaMisteriosa : NetworkBehaviour
     [ClientRpc]
     private void IniciarInvocacionClientRpc(int indice)
     {
-        // 1. Encendemos el objeto "Particulas" para que salgan chispas y humo
         if (particulasInvocacion != null) particulasInvocacion.SetActive(true);
 
-        // 2. Instanciamos el arma
         EstadisticasArma stats = armasPosibles[indice];
         if (stats.prefabVisualCaja != null && puntoFlotanteArma != null)
         {
@@ -294,7 +301,6 @@ public class CajaMisteriosa : NetworkBehaviour
     [ClientRpc]
     private void ApagarCajaClientRpc()
     {
-        // Apagamos SOLO las partículas de invocación, el Magic Circle base se queda encendido
         if (particulasInvocacion != null) particulasInvocacion.SetActive(false);
         if (modeloArmaVisual != null) Destroy(modeloArmaVisual);
     }

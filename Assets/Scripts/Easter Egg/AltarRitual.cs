@@ -9,6 +9,7 @@ public class AltarRitual : NetworkBehaviour
     public float duracionLockdown = 40f;
     public AudioClip sonidoInicioRitual;
     public AudioClip sonidoFinRitual;
+    public AudioSource fuenteAudio;
 
     [Header("Referencias Visuales y Físicas")]
     public GameObject barreraLockdown;
@@ -244,7 +245,7 @@ public class AltarRitual : NetworkBehaviour
     private void ActivarBarrerasClientRpc(bool activar)
     {
         if (barreraLockdown != null) barreraLockdown.SetActive(activar);
-        if (activar && sonidoInicioRitual != null) AudioSource.PlayClipAtPoint(sonidoInicioRitual, transform.position);
+        if (activar && sonidoInicioRitual != null) fuenteAudio.PlayOneShot(sonidoInicioRitual);
         else if (!activar && sonidoFinRitual != null) AudioSource.PlayClipAtPoint(sonidoFinRitual, transform.position);
     }
 }

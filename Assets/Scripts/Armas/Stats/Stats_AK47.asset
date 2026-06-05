@@ -16,12 +16,15 @@ MonoBehaviour:
   prefabArma: {fileID: 2558141238811818592, guid: 68587b2d9c60944489560cf05cdd1aaf, type: 3}
   prefabVisualCaja: {fileID: 2558141238811818592, guid: f42cf0ec1bfa46346b0056c680bca027, type: 3}
   efectoFogonazo: {fileID: 100006, guid: 30b4cc2728d8cec499fad63ba93785a4, type: 3}
+  prefabTerceraPersona: {fileID: 2558141238811818592, guid: 131567ba3582c2d4c9d7fcba14d1882c, type: 3}
+  posicionManoDerecha: {x: -0.0604, y: 0.144, z: 0.0233}
+  rotacionManoDerecha: {x: 285.5844, y: 108.01044, z: 342.4946}
   sonidoDisparo: {fileID: 8300000, guid: 28bfa77344a77844cae518a93638c4b7, type: 3}
   pitchMinimo: 0.95
   pitchMaximo: 1.05
-  "da\xF1o": 31
+  "da\xF1o": 37
   cadenciaDisparo: 0.104
-  balasCargador: 30
+  balasCargador: 34
   tiempoRecarga: 2.75
   sonidoRecarga: {fileID: 8300000, guid: 84f45f2bdb6d82c41bd432915e3a6fad, type: 3}
   modoDisparo: 0

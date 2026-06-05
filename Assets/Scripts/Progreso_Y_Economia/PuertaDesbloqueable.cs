@@ -19,7 +19,10 @@ public class PuertaDesbloqueable : NetworkBehaviour
     public AudioClip sonidoAccesoDenegado;
 
     [Header("Audio del Personaje (Voz)")]
-    [Tooltip("Probabilidad de que el personaje diga una frase al abrir la puerta (0.0 a 1.0)")]
+    [Tooltip("Si pones un audio aquí, el jugador lo dirá SIEMPRE, ignorando la probabilidad y cortando audios previos.")]
+    public AudioClip fraseEspecialVIP;
+
+    [Tooltip("Probabilidad de que diga una frase genérica si NO hay frase VIP (0.0 a 1.0)")]
     [Range(0f, 1f)] public float probabilidadFrase = 0.6f;
 
     public NetworkVariable<bool> estaAbierta = new NetworkVariable<bool>(false);
@@ -40,7 +43,6 @@ public class PuertaDesbloqueable : NetworkBehaviour
                     return;
                 }
 
-                // --- LA CORRECCIÓN: Matrícula del cuerpo, no de la conexión ---
                 ulong miCuerpoID = NetworkManager.Singleton.LocalClient.PlayerObject.NetworkObjectId;
                 ComprarPuertaServerRpc(miCuerpoID);
             }
@@ -101,8 +103,6 @@ public class PuertaDesbloqueable : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void ComprarPuertaServerRpc(ulong idCuerpo)
     {
-        // En lugar del ID de conexión, usamos la lógica anterior pero mandando el idCuerpo al ClientRpc
-        // Buscamos al comprador mirando a quién pertenece este cuerpo para quitarle el dinero
         if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(idCuerpo, out NetworkObject objetoJugador))
         {
             SistemaPuntosFPS bolsillo = objetoJugador.GetComponentInChildren<SistemaPuntosFPS>();
@@ -117,10 +117,10 @@ public class PuertaDesbloqueable : NetworkBehaviour
                     if (zona != null) zona.estaActiva = true;
                 }
 
-                // 1. Mandamos el evento de audio
+                // Mandamos la orden de audio a todos
                 EventosDeAudioClientRpc(idCuerpo, transform.position);
 
-                // 2. Destruimos la puerta directamente
+                // Destrucción directa (Como tú dedujiste, funciona sin problemas)
                 NetworkObject netObj = GetComponent<NetworkObject>();
                 if (netObj != null && netObj.IsSpawned) netObj.Despawn();
             }
@@ -130,21 +130,31 @@ public class PuertaDesbloqueable : NetworkBehaviour
     [ClientRpc]
     private void EventosDeAudioClientRpc(ulong idCuerpo, Vector3 posicionPuerta)
     {
+        // 1. Sonido Físico
         if (sonidoAbrirPuerta != null)
         {
             AudioSource.PlayClipAtPoint(sonidoAbrirPuerta, posicionPuerta);
         }
 
+        // 2. Sistema Híbrido de Voces
         if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(idCuerpo, out NetworkObject objetoJugador))
         {
             SistemaVoces voces = objetoJugador.GetComponent<SistemaVoces>();
 
-            // Solo el dueño tira el dado para hablar
             if (voces != null && voces.IsOwner)
             {
-                if (Random.value <= probabilidadFrase)
+                // A) ¿La puerta tiene audio VIP? Cállate y reprodúcelo obligatorio.
+                if (fraseEspecialVIP != null)
                 {
-                    voces.ReproducirFrase(SistemaVoces.TipoVoz.AbrirPuertas);
+                    voces.ReproducirFraseEspecificaVip(fraseEspecialVIP);
+                }
+                // B) ¿No tiene VIP? Tira el dado y usa una genérica si toca.
+                else
+                {
+                    if (Random.value <= probabilidadFrase)
+                    {
+                        voces.ReproducirFrase(SistemaVoces.TipoVoz.AbrirPuertas);
+                    }
                 }
             }
         }

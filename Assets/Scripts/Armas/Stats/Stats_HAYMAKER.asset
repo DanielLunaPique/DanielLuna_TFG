@@ -15,11 +15,14 @@ MonoBehaviour:
   nombreArma: HAYMAKER
   prefabArma: {fileID: 2891434728239961834, guid: 6a911cd50bb8092409fc37566dc2333d, type: 3}
   prefabVisualCaja: {fileID: 2891434728239961834, guid: 6bceab7a95f7b0f458f1101420ee40e1, type: 3}
-  efectoFogonazo: {fileID: 100000, guid: eb8c772b30f37864d80bd845f739aa6c, type: 3}
-  sonidoDisparo: {fileID: 0}
+  efectoFogonazo: {fileID: 100000, guid: 8eaaa4f553116f44b8459bc24201c514, type: 3}
+  prefabTerceraPersona: {fileID: 2891434728239961834, guid: 2da729d933837c4459b86e3384e145b4, type: 3}
+  posicionManoDerecha: {x: -0.0604, y: 0.144, z: 0.0233}
+  rotacionManoDerecha: {x: 285.5844, y: 108.01044, z: 342.4946}
+  sonidoDisparo: {fileID: 8300000, guid: 367c6043b8640034db8f102e06751a16, type: 3}
   pitchMinimo: 0.95
   pitchMaximo: 1.05
-  "da\xF1o": 35
+  "da\xF1o": 51
   cadenciaDisparo: 0.2
   balasCargador: 12
   tiempoRecarga: 2.5

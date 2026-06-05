@@ -23,21 +23,25 @@ public class SistemaDisparoFPS : MonoBehaviour
     private float tiempoProximoDisparo = 0f;
     private bool disparandoRafaga = false;
 
-    [Tooltip("Arrastra aquí tu Prefab de agujero de bala")]
-    public GameObject prefabAgujeroBala;
-
+    [Header("Efectos Visuales (Hit y Agujeros)")]
     [Tooltip("Arrastra aquí tu Main Camera que tiene el nuevo script")]
     public ControladorCamaraFPS controladorCamara;
 
     [Tooltip("Arrastra aquí el objeto Hitmarker de tu Interfaz")]
     public HitmarkerFPS hitmarkerUI;
 
+    [Tooltip("Arrastra aquí tu Prefab de agujero de bala (Debe tener un SpriteRenderer)")]
+    public GameObject prefabAgujeroBala;
+
+    [Tooltip("Añade aquí los 20 sprites recortados de tus agujeros de bala")]
+    public Sprite[] spritesAgujerosBala; // <--- LA NUEVA LISTA DE IMÁGENES
+
     void Update()
     {
         // Si no tenemos arma, no hacemos nada
         if (controladorFPS == null || controladorFPS.armaActual == null) return;
 
-        if (controladorFPS.estaRecargando || disparandoRafaga || InGameMenu.MenuAbierto) return;
+        if (controladorFPS.estaRecargando || disparandoRafaga || InGameMenu.MenuAbierto || Cursor.lockState != CursorLockMode.Locked) return;
 
         DatosArma arma = controladorFPS.armaActual;
         EstadisticasArma stats = arma.estadisticas;
@@ -60,7 +64,7 @@ public class SistemaDisparoFPS : MonoBehaviour
             }
         }
 
-        else if (stats.modoDisparo == TipoDisparo.Rafaga) // <--- NUEVO MODO
+        else if (stats.modoDisparo == TipoDisparo.Rafaga)
         {
             if (Input.GetMouseButtonDown(0) && Time.time >= tiempoProximoDisparo)
             {
@@ -159,24 +163,35 @@ public class SistemaDisparoFPS : MonoBehaviour
                         break;
                     }
                 }
-
                 else if (impacto.collider.TryGetComponent(out Diana diana))
                 {
                     diana.RecibirDisparoServerRpc();
                 }
-
                 else if (impacto.collider.TryGetComponent(out PiedraRuna runa))
                 {
                     runa.RecibirDisparoServerRpc();
                 }
-
                 else
                 {
                     if (prefabAgujeroBala != null)
                     {
                         Vector3 posicionAgujero = impacto.point + (impacto.normal * 0.001f);
                         Quaternion rotacionAgujero = Quaternion.LookRotation(-impacto.normal);
-                        Instantiate(prefabAgujeroBala, posicionAgujero, rotacionAgujero);
+
+                        GameObject nuevoAgujero = Instantiate(prefabAgujeroBala, posicionAgujero, rotacionAgujero);
+
+                        // 1. Elegimos un sprite de la lista al azar y se lo ponemos
+                        if (spritesAgujerosBala != null && spritesAgujerosBala.Length > 0)
+                        {
+                            SpriteRenderer sr = nuevoAgujero.GetComponent<SpriteRenderer>();
+                            if (sr != null)
+                            {
+                                sr.sprite = spritesAgujerosBala[Random.Range(0, spritesAgujerosBala.Length)];
+                            }
+                        }
+
+                        // 2. Giramos la pegatina sobre sí misma (eje Z) al azar para darle variedad
+                        nuevoAgujero.transform.Rotate(Vector3.forward, Random.Range(0f, 360f));
                     }
 
                     break;
@@ -186,7 +201,6 @@ public class SistemaDisparoFPS : MonoBehaviour
             // Si al final del rayo le hemos dado a al menos un zombie, mostramos la cruceta de hit.
             if (hemosDadoAUnZombie)
             {
-                // En vez de buscarlo, usamos directamente el que le hemos asignado en el Inspector
                 if (hitmarkerUI != null) hitmarkerUI.MostrarHitmarker();
             }
         }
@@ -212,10 +226,7 @@ public class SistemaDisparoFPS : MonoBehaviour
     {
         if (audioFuenteDisparo != null && stats.sonidoDisparo != null)
         {
-            // Alteramos el pitch ligeramente para que no suene a "metralleta robótica"
             audioFuenteDisparo.pitch = Random.Range(stats.pitchMinimo, stats.pitchMaximo);
-
-            // Usamos PlayOneShot para que los sonidos se puedan solapar si disparas muy rápido
             audioFuenteDisparo.PlayOneShot(stats.sonidoDisparo);
         }
     }
@@ -234,8 +245,6 @@ public class SistemaDisparoFPS : MonoBehaviour
             Vector3 puntoNacimiento;
             Quaternion rotacionNacimiento = camaraPrincipal.transform.rotation;
 
-            // Si le hemos asignado un punto de disparo en la punta del arma, lo usamos.
-            // Si se nos ha olvidado, usamos la cámara como plan B para que no dé error.
             if (arma.puntoDeDisparo != null)
             {
                 puntoNacimiento = arma.puntoDeDisparo.position;
@@ -245,17 +254,13 @@ public class SistemaDisparoFPS : MonoBehaviour
                 puntoNacimiento = camaraPrincipal.transform.position + (camaraPrincipal.transform.forward * 0.5f);
             }
 
-            // Creamos la bola
             GameObject bola = Instantiate(stats.prefabProyectil, puntoNacimiento, rotacionNacimiento);
 
-            // IMPORTANTE: Le decimos a la bola que viaje hacia donde está mirando la cámara (la cruceta),
-            // no hacia donde mira el cañón del arma, para que siempre tengas precisión perfecta.
             if (bola.TryGetComponent(out Rigidbody rb))
             {
                 rb.linearVelocity = camaraPrincipal.transform.forward * stats.velocidadProyectil;
             }
 
-            // Le inyectamos los datos del daño, el radio y quién la disparó
             if (bola.TryGetComponent(out OrbeEnergia scriptOrbe))
             {
                 scriptOrbe.dañoAoE = stats.daño;
@@ -264,7 +269,6 @@ public class SistemaDisparoFPS : MonoBehaviour
             }
         }
 
-        // Aplicamos el retroceso
         if (controladorFPS != null) controladorFPS.AplicarRetroceso();
 
         if (controladorCamara != null)
@@ -281,17 +285,13 @@ public class SistemaDisparoFPS : MonoBehaviour
 
     private void MostrarFogonazo(DatosArma arma, EstadisticasArma stats)
     {
-        // Solo lo creamos si el arma tiene el efecto asignado y hemos configurado su punto de disparo
         if (stats.efectoFogonazo != null && arma.puntoDeDisparo != null)
         {
-            // Lo instanciamos COMO HIJO del punto de disparo. 
-            // Así, si el jugador gira la cámara mientras dispara, la luz se mueve con el arma.
             GameObject fogonazo = Instantiate(stats.efectoFogonazo, arma.puntoDeDisparo.position, arma.puntoDeDisparo.rotation, arma.puntoDeDisparo);
 
             fogonazo.transform.localPosition = Vector3.zero;
-        fogonazo.transform.localRotation = Quaternion.identity;
+            fogonazo.transform.localRotation = Quaternion.identity;
 
-            // Un fogonazo es súper rápido, lo destruimos a la décima de segundo (o medio segundo si tiene humo)
             Destroy(fogonazo, 1f);
         }
     }

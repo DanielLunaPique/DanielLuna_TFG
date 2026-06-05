@@ -15,8 +15,11 @@ MonoBehaviour:
   nombreArma: REMINGTON
   prefabArma: {fileID: 2932640980190783236, guid: 01fdab2e3c9dde44191c95c192b204ed, type: 3}
   prefabVisualCaja: {fileID: 2932640980190783236, guid: a063146203d3c08429a98222c563c123, type: 3}
-  efectoFogonazo: {fileID: 100000, guid: eb8c772b30f37864d80bd845f739aa6c, type: 3}
-  sonidoDisparo: {fileID: 0}
+  efectoFogonazo: {fileID: 100000, guid: 8eaaa4f553116f44b8459bc24201c514, type: 3}
+  prefabTerceraPersona: {fileID: 2932640980190783236, guid: d86d7ad4194e8d8438e1903c162848ba, type: 3}
+  posicionManoDerecha: {x: -0.0604, y: 0.144, z: 0.0233}
+  rotacionManoDerecha: {x: 285.5844, y: 108.01044, z: 342.4946}
+  sonidoDisparo: {fileID: 8300000, guid: 2937e9a2e7f7bf54f9193f46916a22a7, type: 3}
   pitchMinimo: 0.95
   pitchMaximo: 1.05
   "da\xF1o": 50

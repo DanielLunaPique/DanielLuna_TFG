@@ -84,33 +84,17 @@ public class SaludJugador : NetworkBehaviour
 
     private void AlCambiarSalud(int vidaAnterior, int vidaNueva)
     {
-        // ========================================================
-        // 1. --- LÓGICA UNIVERSAL (Lo ejecutan TODOS los jugadores) ---
-        // ========================================================
-
-        // Si la vida baja a 0, TODOS deben ejecutar la muerte visual de este cuerpo
         if (vidaNueva <= 0 && vidaAnterior > 0)
         {
             EjecutarMuerteVisualParaTodos();
         }
 
-        // ========================================================
-        // 2. --- LÓGICA LOCAL (A partir de aquí, SOLO pasa el dueño) ---
-        // ========================================================
         if (!IsOwner) return;
 
-        // Efectos de Audio y Voces
         if (vidaNueva < vidaAnterior && !estaMuerto)
         {
-            if (audioEfectos != null && sonidoImpacto != null)
-            {
-                audioEfectos.PlayOneShot(sonidoImpacto, 1f);
-            }
-
-            if (sistemaVocesLocal != null && Random.value <= probabilidadQueja)
-            {
-                sistemaVocesLocal.ReproducirFrase(SistemaVoces.TipoVoz.Herido);
-            }
+            if (audioEfectos != null && sonidoImpacto != null) audioEfectos.PlayOneShot(sonidoImpacto, 1f);
+            if (sistemaVocesLocal != null && Random.value <= probabilidadQueja) sistemaVocesLocal.ReproducirFrase(SistemaVoces.TipoVoz.Herido);
 
             if (uiManagerLocal != null && uiManagerLocal.menuTiendaAbierto)
             {
@@ -129,7 +113,6 @@ public class SaludJugador : NetworkBehaviour
             else MostrarGotas(gotasDeSangre.Length / 2);
         }
 
-        // Lógica del latido del corazón
         if (vidaNueva > 0 && vidaNueva <= 20 && !estaMuerto)
         {
             if (audioCorazon != null && !audioCorazon.isPlaying && clipCorazon != null)
@@ -150,11 +133,9 @@ public class SaludJugador : NetworkBehaviour
 
     private void EjecutarMuerteVisualParaTodos()
     {
-        // 1. Esto lo ejecutan TODOS: El jugador se marca como muerto y sus mallas desaparecen
         estaMuerto = true;
         ConvertirseEnFantasma();
 
-        // 2. Esto SOLO lo ejecuta el dueño que acaba de morir
         if (IsOwner)
         {
             if (audioCorazon != null) audioCorazon.Stop();
@@ -179,10 +160,11 @@ public class SaludJugador : NetworkBehaviour
         ControladorCamaraFPS camFPS = GetComponentInChildren<ControladorCamaraFPS>(true);
         if (camFPS != null) camFPS.enabled = false;
 
-        foreach (Renderer malla in GetComponentsInChildren<Renderer>(true))
-        {
-            malla.enabled = false;
-        }
+        // Apagamos mallas 3D
+        foreach (Renderer malla in GetComponentsInChildren<Renderer>(true)) malla.enabled = false;
+
+        // --- FIX: Apagamos lienzos de UI (Nombres flotantes) ---
+        foreach (Canvas lienzo in GetComponentsInChildren<Canvas>(true)) lienzo.enabled = false;
 
         if (mov != null)
         {
@@ -224,12 +206,15 @@ public class SaludJugador : NetworkBehaviour
         }
     }
 
-    // ==========================================
-    // SISTEMA DE REVIVIR
-
     [ClientRpc]
     public void EjecutarRevivirClientRpc(Vector3 posSpawn, Quaternion rotSpawn)
     {
+        // --- FIX: El Servidor te cura de verdad, no solo visualmente ---
+        if (IsServer)
+        {
+            saludActual.Value = saludMaxima;
+        }
+
         estaMuerto = false;
         RestaurarCuerpoFisico(posSpawn, rotSpawn);
 
@@ -250,10 +235,11 @@ public class SaludJugador : NetworkBehaviour
         Collider col = GetComponent<Collider>();
         if (col != null) col.enabled = true;
 
-        foreach (Renderer malla in GetComponentsInChildren<Renderer>(true))
-        {
-            malla.enabled = true;
-        }
+        // Encendemos mallas 3D
+        foreach (Renderer malla in GetComponentsInChildren<Renderer>(true)) malla.enabled = true;
+
+        // --- FIX: Encendemos los lienzos (Nombres flotantes) ---
+        foreach (Canvas lienzo in GetComponentsInChildren<Canvas>(true)) lienzo.enabled = true;
     }
 
     private System.Collections.IEnumerator CinematicaDespertar()
@@ -299,7 +285,11 @@ public class SaludJugador : NetworkBehaviour
         if (armas != null) armas.enabled = true;
 
         InventarioArmas miInventario = GetComponentInChildren<InventarioArmas>(true);
-        if (miInventario != null) miInventario.RecibirNuevaArma(miInventario.armaPorDefecto);
+        if (miInventario != null)
+        {
+            // --- FIX: Usamos la nueva función para borrar basura y darte la pistola nueva ---
+            miInventario.ResetearInventario();
+        }
 
         ControladorCamaraFPS camFPS = GetComponentInChildren<ControladorCamaraFPS>(true);
         if (camFPS != null) camFPS.enabled = true;
@@ -322,8 +312,18 @@ public class SaludJugador : NetworkBehaviour
         indiceEspectador = (indiceEspectador + direccion + vivos.Count) % vivos.Count;
         NetworkMovement target = vivos[indiceEspectador];
 
-        if (uiManagerLocal != null) uiManagerLocal.MostrarHUDModuloEspectador("Jugador " + target.OwnerClientId);
+        // --- FIX: LEER EL NOMBRE REAL DEL JUGADOR ---
+        string nombreMostrar = "Jugador " + target.OwnerClientId; // Nombre por defecto por si acaso
 
+        PlayerNameTag nameTag = target.GetComponent<PlayerNameTag>();
+        if (nameTag != null && !string.IsNullOrEmpty(nameTag.NetworkedName.Value.ToString()))
+        {
+            nombreMostrar = nameTag.NetworkedName.Value.ToString();
+        }
+
+        if (uiManagerLocal != null) uiManagerLocal.MostrarHUDModuloEspectador("Observando a " + nombreMostrar);
+
+        // --- COLOCAR LA CÁMARA ---
         Transform cabeza = target.transform.Find("Camera Root");
         if (cabeza == null) cabeza = target.transform;
 
@@ -348,11 +348,16 @@ public class SaludJugador : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsOwner) return;
+        // El servidor DEBE calcular la regeneración de vida de todos los jugadores de la partida
+        if (IsServer)
+        {
+            ProcesarRegeneracionServidor();
+        }
 
+        if (!IsOwner) return; 
+
+        // Los efectos visuales de sangre y controles de espectador solo los procesa el jugador en su pantalla
         ManejarEfectosVisuales();
-
-        if (IsServer) ProcesarRegeneracionServidor();
 
         if (estaMuerto)
         {
@@ -393,7 +398,6 @@ public class SaludJugador : NetworkBehaviour
 
     private void ManejarEfectosVisuales()
     {
-        // Esto también queda intacto como lo tenías
         if (destelloRojo != null && destelloRojo.color.a > 0)
         {
             Color c = destelloRojo.color;

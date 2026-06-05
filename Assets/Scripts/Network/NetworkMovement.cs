@@ -24,6 +24,10 @@ public class NetworkMovement : NetworkBehaviour
     [Header("Configuración Visual")]
     public SkinnedMeshRenderer[] mallasCuerpoTerceraPersona;
 
+    [Tooltip("Marca o desmarca esta casilla en tiempo de ejecución para verte el cuerpo")]
+    public bool forzarVerCuerpoLocal = false;
+    private bool estadoVisibilidadAnterior = false;
+
     [Header("Físicas y Movimiento")]
     public float velocidadCaminar = 2.5f;
     public float velocidadCorrer = 5.0f;
@@ -46,8 +50,8 @@ public class NetworkMovement : NetworkBehaviour
     public float alturaTumbadoFisico = 0.5f;
 
     [Header("Corrección de Animación TPS")]
-    public Transform huesoColumna; // Aquí arrastrarás la espina dorsal de tu modelo
-    public Vector3 compensacionApuntado = new Vector3(0f, 15f, 0f); // Grados a corregir
+    public Transform huesoColumna;
+    public Vector3 compensacionApuntado = new Vector3(0f, 15f, 0f);
 
     private float alturaCamaraNormal;
     public float alturaCamaraAgachado = 0.5f;
@@ -57,8 +61,6 @@ public class NetworkMovement : NetworkBehaviour
 
     private Vector3 velocidadCaida;
 
-    // --- VARIABLES DE ESTADO UNIFICADO ---
-    // Guardamos la decisión global en vez de calcularla 3 veces distintas
     private float inputX;
     private float inputZ;
     private bool inputApuntando;
@@ -71,7 +73,6 @@ public class NetworkMovement : NetworkBehaviour
 
     public NetworkVariable<float> inclinacionRed = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
-    // Hashes de Animator
     private readonly int inputXHash = Animator.StringToHash("InputX");
     private readonly int inputZHash = Animator.StringToHash("InputZ");
     private readonly int isSprintingHash = Animator.StringToHash("IsSprinting");
@@ -82,33 +83,27 @@ public class NetworkMovement : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        // 1. LA CURA DEL FANTASMA: Buscamos la cabeza para TODOS los ordenadores
         if (camaraPivot == null)
         {
-            // Buscamos a tu hijo llamado "Camera Root" (como sale en tu captura)
             Transform root = transform.Find("Camera Root");
-
-            // Si lo encuentra se lo asigna. Si no, usa el cuerpo entero como plan B.
             camaraPivot = root != null ? root : transform;
         }
 
-        // 2. Lógica exclusiva del dueño de este jugador
         if (IsOwner)
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
-            // Ahora es seguro leer la altura porque sabemos que camaraPivot existe sí o sí
             alturaCamaraNormal = camaraPivot.localPosition.y;
+            estadoVisibilidadAnterior = forzarVerCuerpoLocal;
 
             foreach (SkinnedMeshRenderer malla in mallasCuerpoTerceraPersona)
             {
-                if (malla != null) malla.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+                if (malla != null) malla.shadowCastingMode = forzarVerCuerpoLocal ? ShadowCastingMode.On : ShadowCastingMode.ShadowsOnly;
             }
         }
         else
         {
-            // Lógica para los clones de tus amigos (se apagan sus cámaras)
             if (camaraPrincipal != null) camaraPrincipal.SetActive(false);
             if (camaraArma != null) camaraArma.SetActive(false);
             if (objetoBrazosFPS != null) objetoBrazosFPS.SetActive(false);
@@ -116,17 +111,27 @@ public class NetworkMovement : NetworkBehaviour
         }
     }
 
-    // --- LA ESTRUCTURA AAA DEL UPDATE ---
     void Update()
     {
         if (IsOwner)
         {
-            RecogerInputsYPosturas(); // 1. Leemos el ratón y teclado
-            ResolverEstamina();       // 2. Decidimos qué puede y no puede hacer
-            ComprobarSuelo();         // 3. Chequeamos la gravedad
-            MoverJugador();           // 4. Movemos la cápsula
-            LogicaPostura();          // 5. Agachamos/Tumbamos el cuerpo
-            AnimarJugadores();        // 6. Lanzamos las animaciones
+            // --- NUEVO: Comprobador instantáneo de visibilidad ---
+            if (forzarVerCuerpoLocal != estadoVisibilidadAnterior)
+            {
+                estadoVisibilidadAnterior = forzarVerCuerpoLocal;
+                foreach (SkinnedMeshRenderer malla in mallasCuerpoTerceraPersona)
+                {
+                    if (malla != null) malla.shadowCastingMode = forzarVerCuerpoLocal ? ShadowCastingMode.On : ShadowCastingMode.ShadowsOnly;
+                }
+            }
+            // -----------------------------------------------------
+
+            RecogerInputsYPosturas();
+            ResolverEstamina();
+            ComprobarSuelo();
+            MoverJugador();
+            LogicaPostura();
+            AnimarJugadores();
 
             if (camaraPivot != null) inclinacionRed.Value = camaraPivot.localEulerAngles.x;
         }
@@ -141,14 +146,10 @@ public class NetworkMovement : NetworkBehaviour
 
     private void LateUpdate()
     {
-        // LateUpdate se ejecuta DESPUÉS de que el Animator coloque los huesos.
-        // Aquí forzamos una corrección manual.
         if (huesoColumna != null && animatorCuerpo != null)
         {
-            // Si el Animator dice que este jugador está apuntando...
             if (animatorCuerpo.GetBool("IsAiming"))
             {
-                // Le giramos la cintura los grados que necesitemos
                 huesoColumna.Rotate(compensacionApuntado, Space.Self);
             }
         }
@@ -183,7 +184,6 @@ public class NetworkMovement : NetworkBehaviour
             }
         }
 
-        // Auto-levantarse
         if (quiereCorrer && inputZ > 0 && !inputApuntando)
         {
             estaAgachado = false;
@@ -193,13 +193,9 @@ public class NetworkMovement : NetworkBehaviour
 
     void ResolverEstamina()
     {
-        // Miramos si la estamina nos da permiso
         bool tieneEstamina = (sistemaEstamina == null || sistemaEstamina.puedeCorrer);
-
-        // --- NUEVO: Miramos si el jugador está intentando disparar ---
         bool intentandoDisparar = Input.GetMouseButton(0);
 
-        // Calculamos la verdad absoluta (Añadimos && !intentandoDisparar al final)
         esprintandoRealmente = quiereCorrer && inputZ > 0 && !inputApuntando && !estaAgachado && !estaTumbado && tieneEstamina && !intentandoDisparar;
 
         if (sistemaEstamina != null)
@@ -266,10 +262,7 @@ public class NetworkMovement : NetworkBehaviour
     void AnimarJugadores()
     {
         float animZ = inputZ * (esprintandoRealmente ? 2f : 1f);
-
-        // Usamos la variable global unificada
         MandarParametrosAnimator(animatorCuerpo, inputX, animZ, esprintandoRealmente, inputApuntando, inputDisparando);
-        //MandarParametrosAnimator(animatorBrazosFPS, inputX, animZ, esprintandoRealmente, inputApuntando, inputDisparando);
     }
 
     void MandarParametrosAnimator(Animator anim, float x, float z, bool sprint, bool apuntando, bool disparando)
@@ -277,8 +270,6 @@ public class NetworkMovement : NetworkBehaviour
         if (anim == null) return;
         anim.SetFloat(inputXHash, x, 0.1f, Time.deltaTime);
         anim.SetFloat(inputZHash, z, 0.1f, Time.deltaTime);
-
-        // Ya no calculamos nada aquí. Si llega "true", es que TODO es correcto.
         anim.SetBool(isSprintingHash, sprint);
         anim.SetBool(isCrouchingHash, estaAgachado);
         anim.SetBool(isProneHash, estaTumbado);
